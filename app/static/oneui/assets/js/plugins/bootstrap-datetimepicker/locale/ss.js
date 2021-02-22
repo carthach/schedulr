@@ -1,5 +1,5 @@
 //! moment.js locale configuration
-//! locale : siSwati [recurrify]
+//! locale : siSwati [schedulr]
 //! author : Nicolai Davies<mail@nicolai.io> : https://github.com/nicolaidavies
 
 ;(function (global, factory) {
@@ -20,7 +20,7 @@ var ss = moment.defineLocale('ss', {
     weekdaysParseExact : true,
     longDateFormat : {
         LT : 'h:mm A',
-        LTS : 'h:mm:recurrify A',
+        LTS : 'h:mm:schedulr A',
         L : 'DD/MM/YYYY',
         LL : 'D MMMM YYYY',
         LLL : 'D MMMM YYYY h:mm A',

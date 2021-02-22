@@ -24,7 +24,7 @@ var momentjsClasses = function () {
     (function updateTime() {
       var time = moment($(e).data('datetime'));
       $(e).text(time.fromNow());
-      $(e).attr('title', time.format('MMMM Do YYYY, h:mm:recurrify a Z'));
+      $(e).attr('title', time.format('MMMM Do YYYY, h:mm:schedulr a Z'));
       setTimeout(updateTime, 1000);
     })();
   });
@@ -32,7 +32,7 @@ var momentjsClasses = function () {
   $shortDate.each(function (i, e) {
     var time = moment($(e).data('datetime'));
     $(e).text(time.format('MMM Do YYYY'));
-    $(e).attr('title', time.format('MMMM Do YYYY, h:mm:recurrify a Z'));
+    $(e).attr('title', time.format('MMMM Do YYYY, h:mm:schedulr a Z'));
   });
 };
 
@@ -101,7 +101,7 @@ var coupons = function () {
   if ($redeemBy.length) {
     $redeemBy.datetimepicker({
       widgetParent: '.dt',
-      format: 'YYYY-MM-DD HH:mm:recurrify',
+      format: 'YYYY-MM-DD HH:mm:schedulr',
       icons: {
         time: 'fa fa-clock-o',
         date: 'fa fa-calendar',

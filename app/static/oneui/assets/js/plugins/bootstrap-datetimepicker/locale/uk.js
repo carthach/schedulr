@@ -63,7 +63,7 @@ var uk = moment.defineLocale('uk', {
     weekdaysMin : 'нд_пн_вт_ср_чт_пт_сб'.split('_'),
     longDateFormat : {
         LT : 'HH:mm',
-        LTS : 'HH:mm:recurrify',
+        LTS : 'HH:mm:schedulr',
         L : 'DD.MM.YYYY',
         LL : 'D MMMM YYYY р.',
         LLL : 'D MMMM YYYY р., HH:mm',

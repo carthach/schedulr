@@ -44,7 +44,7 @@ var paIn = moment.defineLocale('pa-in', {
     weekdaysMin : 'ਐਤ_ਸੋਮ_ਮੰਗਲ_ਬੁਧ_ਵੀਰ_ਸ਼ੁਕਰ_ਸ਼ਨੀ'.split('_'),
     longDateFormat : {
         LT : 'A h:mm ਵਜੇ',
-        LTS : 'A h:mm:recurrify ਵਜੇ',
+        LTS : 'A h:mm:schedulr ਵਜੇ',
         L : 'DD/MM/YYYY',
         LL : 'D MMMM YYYY',
         LLL : 'D MMMM YYYY, A h:mm ਵਜੇ',

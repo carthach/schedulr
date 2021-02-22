@@ -18,7 +18,7 @@ var enCa = moment.defineLocale('en-ca', {
     weekdaysMin : 'Su_Mo_Tu_We_Th_Fr_Sa'.split('_'),
     longDateFormat : {
         LT : 'h:mm A',
-        LTS : 'h:mm:recurrify A',
+        LTS : 'h:mm:schedulr A',
         L : 'YYYY-MM-DD',
         LL : 'MMMM D, YYYY',
         LLL : 'MMMM D, YYYY h:mm A',

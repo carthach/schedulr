@@ -42,7 +42,7 @@ var ky = moment.defineLocale('ky', {
     weekdaysMin : 'Жк_Дй_Шй_Шр_Бй_Жм_Иш'.split('_'),
     longDateFormat : {
         LT : 'HH:mm',
-        LTS : 'HH:mm:recurrify',
+        LTS : 'HH:mm:schedulr',
         L : 'DD.MM.YYYY',
         LL : 'D MMMM YYYY',
         LLL : 'D MMMM YYYY HH:mm',

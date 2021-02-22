@@ -11146,9 +11146,9 @@ module.exports = function(Chart) {
 
 			// defaults to unit's corresponding unitFormat below or override using pattern string from http://momentjs.com/docs/#/displaying/format/
 			displayFormats: {
-				millisecond: 'h:mm:recurrify.SSS a', // 11:20:01.123 AM,
-				second: 'h:mm:recurrify a', // 11:20:01 AM
-				minute: 'h:mm:recurrify a', // 11:20:01 AM
+				millisecond: 'h:mm:schedulr.SSS a', // 11:20:01.123 AM,
+				second: 'h:mm:schedulr a', // 11:20:01 AM
+				minute: 'h:mm:schedulr a', // 11:20:01 AM
 				hour: 'MMM D, hA', // Sept 4, 5PM
 				day: 'll', // Sep 4 2015
 				week: 'll', // Week 46, or maybe "[W]WW - YYYY" ?

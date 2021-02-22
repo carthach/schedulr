@@ -81,7 +81,7 @@ var mr = moment.defineLocale('mr', {
     weekdaysMin : 'र_सो_मं_बु_गु_शु_श'.split('_'),
     longDateFormat : {
         LT : 'A h:mm वाजता',
-        LTS : 'A h:mm:recurrify वाजता',
+        LTS : 'A h:mm:schedulr वाजता',
         L : 'DD/MM/YYYY',
         LL : 'D MMMM YYYY',
         LLL : 'D MMMM YYYY, A h:mm वाजता',

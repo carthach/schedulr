@@ -43,7 +43,7 @@ var bo = moment.defineLocale('bo', {
     weekdaysMin : 'ཉི་མ་_ཟླ་བ་_མིག་དམར་_ལྷག་པ་_ཕུར་བུ_པ་སངས་_སྤེན་པ་'.split('_'),
     longDateFormat : {
         LT : 'A h:mm',
-        LTS : 'A h:mm:recurrify',
+        LTS : 'A h:mm:schedulr',
         L : 'DD/MM/YYYY',
         LL : 'D MMMM YYYY',
         LLL : 'D MMMM YYYY, A h:mm',

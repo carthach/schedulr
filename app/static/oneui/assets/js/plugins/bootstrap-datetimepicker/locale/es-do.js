@@ -28,7 +28,7 @@ var esDo = moment.defineLocale('es-do', {
     weekdaysParseExact : true,
     longDateFormat : {
         LT : 'h:mm A',
-        LTS : 'h:mm:recurrify A',
+        LTS : 'h:mm:schedulr A',
         L : 'DD/MM/YYYY',
         LL : 'D [de] MMMM [de] YYYY',
         LLL : 'D [de] MMMM [de] YYYY h:mm A',

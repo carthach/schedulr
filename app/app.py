@@ -88,8 +88,8 @@ def create_app(settings_override=None):
     # Setting app server name and cookie domain
     if os.environ.get('PRODUCTION') == 'true':
         # Set the app server name
-        app.config['SERVER_NAME'] = 'recurrify.io'
-        app.config['REMEMBER_COOKIE_DOMAIN'] = '.recurrify.io'
+        app.config['SERVER_NAME'] = 'schedulr.io'
+        app.config['REMEMBER_COOKIE_DOMAIN'] = '.schedulr.io'
     else:
         # Set the app server name
         SERVER_NAME = '29a34d83d7c7.ngrok.io'
@@ -370,7 +370,7 @@ def site_version_filter(arg):
 
 def site_url_filter(arg):
     from flask import current_app
-    return current_app.config.get('SERVER_NAME')  # 'recurrify.io'
+    return current_app.config.get('SERVER_NAME')  # 'schedulr.io'
 
 
 def site_color_filter(arg):

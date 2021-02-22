@@ -21,7 +21,7 @@ var cy = moment.defineLocale('cy', {
     // time formats are the same as en-gb
     longDateFormat: {
         LT: 'HH:mm',
-        LTS : 'HH:mm:recurrify',
+        LTS : 'HH:mm:schedulr',
         L: 'DD/MM/YYYY',
         LL: 'D MMMM YYYY',
         LLL: 'D MMMM YYYY HH:mm',

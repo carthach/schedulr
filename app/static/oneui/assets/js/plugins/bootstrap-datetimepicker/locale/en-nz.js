@@ -18,7 +18,7 @@ var enNz = moment.defineLocale('en-nz', {
     weekdaysMin : 'Su_Mo_Tu_We_Th_Fr_Sa'.split('_'),
     longDateFormat : {
         LT : 'h:mm A',
-        LTS : 'h:mm:recurrify A',
+        LTS : 'h:mm:schedulr A',
         L : 'DD/MM/YYYY',
         LL : 'D MMMM YYYY',
         LLL : 'D MMMM YYYY h:mm A',

@@ -43,7 +43,7 @@ var bn = moment.defineLocale('bn', {
     weekdaysMin : 'রবি_সোম_মঙ্গ_বুধ_বৃহঃ_শুক্র_শনি'.split('_'),
     longDateFormat : {
         LT : 'A h:mm সময়',
-        LTS : 'A h:mm:recurrify সময়',
+        LTS : 'A h:mm:schedulr সময়',
         L : 'DD/MM/YYYY',
         LL : 'D MMMM YYYY',
         LLL : 'D MMMM YYYY, A h:mm সময়',

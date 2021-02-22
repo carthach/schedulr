@@ -1,10 +1,10 @@
 setup.py
-Recurrify_CLI.egg-info/PKG-INFO
-Recurrify_CLI.egg-info/SOURCES.txt
-Recurrify_CLI.egg-info/dependency_links.txt
-Recurrify_CLI.egg-info/entry_points.txt
-Recurrify_CLI.egg-info/requires.txt
-Recurrify_CLI.egg-info/top_level.txt
+Schedulr_CLI.egg-info/PKG-INFO
+Schedulr_CLI.egg-info/SOURCES.txt
+Schedulr_CLI.egg-info/dependency_links.txt
+Schedulr_CLI.egg-info/entry_points.txt
+Schedulr_CLI.egg-info/requires.txt
+Schedulr_CLI.egg-info/top_level.txt
 cli/__init__.py
 cli/cli.py
 cli/commands/__init__.py

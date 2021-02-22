@@ -55,7 +55,7 @@ var lv = moment.defineLocale('lv', {
     weekdaysParseExact : true,
     longDateFormat : {
         LT : 'HH:mm',
-        LTS : 'HH:mm:recurrify',
+        LTS : 'HH:mm:schedulr',
         L : 'DD.MM.YYYY.',
         LL : 'YYYY. [gada] D. MMMM',
         LLL : 'YYYY. [gada] D. MMMM, HH:mm',

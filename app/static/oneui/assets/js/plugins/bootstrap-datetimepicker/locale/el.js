@@ -41,7 +41,7 @@ var el = moment.defineLocale('el', {
     meridiemParse : /[ΠΜ]\.?Μ?\.?/i,
     longDateFormat : {
         LT : 'h:mm A',
-        LTS : 'h:mm:recurrify A',
+        LTS : 'h:mm:schedulr A',
         L : 'DD/MM/YYYY',
         LL : 'D MMMM YYYY',
         LLL : 'D MMMM YYYY h:mm A',

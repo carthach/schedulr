@@ -1,4 +1,4 @@
 
         [console_scripts]
-        recurrify=cli.cli:cli
+        schedulr=cli.cli:cli
     

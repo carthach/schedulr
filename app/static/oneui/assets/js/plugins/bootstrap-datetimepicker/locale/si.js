@@ -20,11 +20,11 @@ var si = moment.defineLocale('si', {
     weekdaysParseExact : true,
     longDateFormat : {
         LT : 'a h:mm',
-        LTS : 'a h:mm:recurrify',
+        LTS : 'a h:mm:schedulr',
         L : 'YYYY/MM/DD',
         LL : 'YYYY MMMM D',
         LLL : 'YYYY MMMM D, a h:mm',
-        LLLL : 'YYYY MMMM D [වැනි] dddd, a h:mm:recurrify'
+        LLLL : 'YYYY MMMM D [වැනි] dddd, a h:mm:schedulr'
     },
     calendar : {
         sameDay : '[අද] LT[ට]',

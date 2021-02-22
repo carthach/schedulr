@@ -19,7 +19,7 @@ var ml = moment.defineLocale('ml', {
     weekdaysMin : 'ഞാ_തി_ചൊ_ബു_വ്യാ_വെ_ശ'.split('_'),
     longDateFormat : {
         LT : 'A h:mm -നു',
-        LTS : 'A h:mm:recurrify -നു',
+        LTS : 'A h:mm:schedulr -നു',
         L : 'DD/MM/YYYY',
         LL : 'D MMMM YYYY',
         LLL : 'D MMMM YYYY, A h:mm -നു',

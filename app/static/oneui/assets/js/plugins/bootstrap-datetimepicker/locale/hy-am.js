@@ -21,7 +21,7 @@ var hyAm = moment.defineLocale('hy-am', {
     weekdaysMin : 'կրկ_երկ_երք_չրք_հնգ_ուրբ_շբթ'.split('_'),
     longDateFormat : {
         LT : 'HH:mm',
-        LTS : 'HH:mm:recurrify',
+        LTS : 'HH:mm:schedulr',
         L : 'DD.MM.YYYY',
         LL : 'D MMMM YYYY թ.',
         LLL : 'D MMMM YYYY թ., HH:mm',

@@ -81,7 +81,7 @@ var ar = moment.defineLocale('ar', {
     weekdaysParseExact : true,
     longDateFormat : {
         LT : 'HH:mm',
-        LTS : 'HH:mm:recurrify',
+        LTS : 'HH:mm:schedulr',
         L : 'D/\u200FM/\u200FYYYY',
         LL : 'D MMMM YYYY',
         LLL : 'D MMMM YYYY HH:mm',

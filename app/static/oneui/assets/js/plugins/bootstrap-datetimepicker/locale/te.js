@@ -19,7 +19,7 @@ var te = moment.defineLocale('te', {
     weekdaysMin : 'ఆ_సో_మం_బు_గు_శు_శ'.split('_'),
     longDateFormat : {
         LT : 'A h:mm',
-        LTS : 'A h:mm:recurrify',
+        LTS : 'A h:mm:schedulr',
         L : 'DD/MM/YYYY',
         LL : 'D MMMM YYYY',
         LLL : 'D MMMM YYYY, A h:mm',

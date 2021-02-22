@@ -21,7 +21,7 @@ var tzl = moment.defineLocale('tzl', {
     weekdaysMin : 'Sú_Lú_Ma_Má_Xh_Vi_Sá'.split('_'),
     longDateFormat : {
         LT : 'HH.mm',
-        LTS : 'HH.mm.recurrify',
+        LTS : 'HH.mm.schedulr',
         L : 'DD.MM.YYYY',
         LL : 'D. MMMM [dallas] YYYY',
         LLL : 'D. MMMM [dallas] YYYY HH.mm',

@@ -45,7 +45,7 @@ var ne = moment.defineLocale('ne', {
     weekdaysParseExact : true,
     longDateFormat : {
         LT : 'Aको h:mm बजे',
-        LTS : 'Aको h:mm:recurrify बजे',
+        LTS : 'Aको h:mm:schedulr बजे',
         L : 'DD/MM/YYYY',
         LL : 'D MMMM YYYY',
         LLL : 'D MMMM YYYY, Aको h:mm बजे',

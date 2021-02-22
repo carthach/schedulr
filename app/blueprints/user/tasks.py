@@ -33,7 +33,7 @@ def deliver_password_reset_email(user_id, reset_token):
 
     ctx = {'user': user, 'reset_token': reset_token}
 
-    send_template_message(subject='Password reset from Recurrify',
+    send_template_message(subject='Password reset from Schedulr',
                           recipients=[user.email],
                           template='user/mail/password_reset', ctx=ctx)
 

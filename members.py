@@ -1,2 +1,2 @@
 import os
-os.system("docker-compose exec website recurrify db memberships")
+os.system("docker-compose exec website schedulr db memberships")

@@ -18,7 +18,7 @@ var mk = moment.defineLocale('mk', {
     weekdaysMin : 'нe_пo_вт_ср_че_пе_сa'.split('_'),
     longDateFormat : {
         LT : 'H:mm',
-        LTS : 'H:mm:recurrify',
+        LTS : 'H:mm:schedulr',
         L : 'D.MM.YYYY',
         LL : 'D MMMM YYYY',
         LLL : 'D MMMM YYYY H:mm',

@@ -43,7 +43,7 @@ var dv = moment.defineLocale('dv', {
     longDateFormat : {
 
         LT : 'HH:mm',
-        LTS : 'HH:mm:recurrify',
+        LTS : 'HH:mm:schedulr',
         L : 'D/M/YYYY',
         LL : 'D MMMM YYYY',
         LLL : 'D MMMM YYYY HH:mm',

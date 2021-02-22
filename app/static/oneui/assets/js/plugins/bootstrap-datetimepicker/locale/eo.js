@@ -20,7 +20,7 @@ var eo = moment.defineLocale('eo', {
     weekdaysMin : 'Di_Lu_Ma_Me_Ĵa_Ve_Sa'.split('_'),
     longDateFormat : {
         LT : 'HH:mm',
-        LTS : 'HH:mm:recurrify',
+        LTS : 'HH:mm:schedulr',
         L : 'YYYY-MM-DD',
         LL : 'D[-an de] MMMM, YYYY',
         LLL : 'D[-an de] MMMM, YYYY HH:mm',

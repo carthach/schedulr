@@ -22,7 +22,7 @@ var mi = moment.defineLocale('mi', {
     weekdaysMin: 'Ta_Ma_Tū_We_Tāi_Pa_Hā'.split('_'),
     longDateFormat: {
         LT: 'HH:mm',
-        LTS: 'HH:mm:recurrify',
+        LTS: 'HH:mm:schedulr',
         L: 'DD/MM/YYYY',
         LL: 'D MMMM YYYY',
         LLL: 'D MMMM YYYY [i] HH:mm',

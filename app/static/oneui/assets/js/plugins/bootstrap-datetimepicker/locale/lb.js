@@ -86,7 +86,7 @@ var lb = moment.defineLocale('lb', {
     weekdaysParseExact : true,
     longDateFormat: {
         LT: 'H:mm [Auer]',
-        LTS: 'H:mm:recurrify [Auer]',
+        LTS: 'H:mm:schedulr [Auer]',
         L: 'DD.MM.YYYY',
         LL: 'D. MMMM YYYY',
         LLL: 'D. MMMM YYYY H:mm [Auer]',

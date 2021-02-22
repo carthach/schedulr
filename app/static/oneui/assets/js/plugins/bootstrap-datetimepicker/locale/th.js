@@ -20,7 +20,7 @@ var th = moment.defineLocale('th', {
     weekdaysParseExact : true,
     longDateFormat : {
         LT : 'H:mm',
-        LTS : 'H:mm:recurrify',
+        LTS : 'H:mm:schedulr',
         L : 'YYYY/MM/DD',
         LL : 'D MMMM YYYY',
         LLL : 'D MMMM YYYY เวลา H:mm',

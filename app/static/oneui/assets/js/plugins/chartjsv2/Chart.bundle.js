@@ -2081,7 +2081,7 @@ function calendar (key, mom, now) {
 }
 
 var defaultLongDateFormat = {
-    LTS  : 'h:mm:recurrify A',
+    LTS  : 'h:mm:schedulr A',
     LT   : 'h:mm A',
     L    : 'MM/DD/YYYY',
     LL   : 'MMMM D, YYYY',
@@ -3658,9 +3658,9 @@ var isoDates = [
 
 // iso time formats and regexes
 var isoTimes = [
-    ['HH:mm:recurrify.SSSS', /\d\d:\d\d:\d\d\.\d+/],
-    ['HH:mm:recurrify,SSSS', /\d\d:\d\d:\d\d,\d+/],
-    ['HH:mm:recurrify', /\d\d:\d\d:\d\d/],
+    ['HH:mm:schedulr.SSSS', /\d\d:\d\d:\d\d\.\d+/],
+    ['HH:mm:schedulr,SSSS', /\d\d:\d\d:\d\d,\d+/],
+    ['HH:mm:schedulr', /\d\d:\d\d:\d\d/],
     ['HH:mm', /\d\d:\d\d/],
     ['HHmmss.SSSS', /\d\d\d\d\d\d\.\d+/],
     ['HHmmss,SSSS', /\d\d\d\d\d\d,\d+/],
@@ -4774,10 +4774,10 @@ function monthDiff (a, b) {
 }
 
 hooks.defaultFormat = 'YYYY-MM-DDTHH:mm:ssZ';
-hooks.defaultFormatUtc = 'YYYY-MM-DDTHH:mm:recurrify[Z]';
+hooks.defaultFormatUtc = 'YYYY-MM-DDTHH:mm:schedulr[Z]';
 
 function toString () {
-    return this.clone().locale('en').format('ddd MMM DD YYYY HH:mm:recurrify [GMT]ZZ');
+    return this.clone().locale('en').format('ddd MMM DD YYYY HH:mm:schedulr [GMT]ZZ');
 }
 
 function toISOString () {
@@ -4787,10 +4787,10 @@ function toISOString () {
             // native implementation is ~50x faster, use it when we can
             return this.toDate().toISOString();
         } else {
-            return formatMoment(m, 'YYYY-MM-DD[T]HH:mm:recurrify.SSS[Z]');
+            return formatMoment(m, 'YYYY-MM-DD[T]HH:mm:schedulr.SSS[Z]');
         }
     } else {
-        return formatMoment(m, 'YYYYYY-MM-DD[T]HH:mm:recurrify.SSS[Z]');
+        return formatMoment(m, 'YYYYYY-MM-DD[T]HH:mm:schedulr.SSS[Z]');
     }
 }
 
@@ -4812,7 +4812,7 @@ function inspect () {
     }
     var prefix = '[' + func + '("]';
     var year = (0 < this.year() && this.year() <= 9999) ? 'YYYY' : 'YYYYYY';
-    var datetime = '-MM-DD[T]HH:mm:recurrify.SSS';
+    var datetime = '-MM-DD[T]HH:mm:schedulr.SSS';
     var suffix = zone + '[")]';
 
     return this.format(prefix + year + datetime + suffix);
@@ -15444,9 +15444,9 @@ module.exports = function(Chart) {
 
 			// defaults to unit's corresponding unitFormat below or override using pattern string from http://momentjs.com/docs/#/displaying/format/
 			displayFormats: {
-				millisecond: 'h:mm:recurrify.SSS a', // 11:20:01.123 AM,
-				second: 'h:mm:recurrify a', // 11:20:01 AM
-				minute: 'h:mm:recurrify a', // 11:20:01 AM
+				millisecond: 'h:mm:schedulr.SSS a', // 11:20:01.123 AM,
+				second: 'h:mm:schedulr a', // 11:20:01 AM
+				minute: 'h:mm:schedulr a', // 11:20:01 AM
 				hour: 'MMM D, hA', // Sept 4, 5PM
 				day: 'll', // Sep 4 2015
 				week: 'll', // Week 46, or maybe "[W]WW - YYYY" ?

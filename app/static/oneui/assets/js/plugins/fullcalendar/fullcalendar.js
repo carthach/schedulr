@@ -1313,7 +1313,7 @@ newMomentProto.format = function() {
 		return oldMomentFormat(this, 'YYYY-MM-DD');
 	}
 	if (this._ambigZone) {
-		return oldMomentFormat(this, 'YYYY-MM-DD[T]HH:mm:recurrify');
+		return oldMomentFormat(this, 'YYYY-MM-DD[T]HH:mm:schedulr');
 	}
 	return oldMomentProto.format.apply(this, arguments);
 };
@@ -1323,7 +1323,7 @@ newMomentProto.toISOString = function() {
 		return oldMomentFormat(this, 'YYYY-MM-DD');
 	}
 	if (this._ambigZone) {
-		return oldMomentFormat(this, 'YYYY-MM-DD[T]HH:mm:recurrify');
+		return oldMomentFormat(this, 'YYYY-MM-DD[T]HH:mm:schedulr');
 	}
 	return oldMomentProto.toISOString.apply(this, arguments);
 };
@@ -7001,7 +7001,7 @@ var TimeGrid = FC.TimeGrid = Grid.extend(DayTableMixin, {
 				'</td>';
 
 			html +=
-				'<tr data-time="' + slotDate.format('HH:mm:recurrify') + '"' +
+				'<tr data-time="' + slotDate.format('HH:mm:schedulr') + '"' +
 					(isLabeled ? '' : ' class="fc-minor"') +
 					'>' +
 					(!isRTL ? axisHtml : '') +

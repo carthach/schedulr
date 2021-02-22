@@ -20,7 +20,7 @@ var frCa = moment.defineLocale('fr-ca', {
     weekdaysParseExact : true,
     longDateFormat : {
         LT : 'HH:mm',
-        LTS : 'HH:mm:recurrify',
+        LTS : 'HH:mm:schedulr',
         L : 'YYYY-MM-DD',
         LL : 'D MMMM YYYY',
         LLL : 'D MMMM YYYY HH:mm',

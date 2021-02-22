@@ -18,7 +18,7 @@ var tlPh = moment.defineLocale('tl-ph', {
     weekdaysMin : 'Li_Lu_Ma_Mi_Hu_Bi_Sab'.split('_'),
     longDateFormat : {
         LT : 'HH:mm',
-        LTS : 'HH:mm:recurrify',
+        LTS : 'HH:mm:schedulr',
         L : 'MM/D/YYYY',
         LL : 'MMMM D, YYYY',
         LLL : 'MMMM D, YYYY HH:mm',

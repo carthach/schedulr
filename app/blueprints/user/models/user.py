@@ -20,7 +20,7 @@ from app.extensions import db
 
 class User(UserMixin, ResourceMixin, db.Model):
     ROLE = OrderedDict([
-        ('admin', 'Admin'),  # for those who run Recurrify
+        ('admin', 'Admin'),  # for those who run Schedulr
         ('owner', 'Owner'),  # for store owners
         ('member', 'Member')  # for members
     ])
