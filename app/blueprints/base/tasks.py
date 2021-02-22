@@ -1,31 +1,10 @@
 from app.app import create_celery_app
-from app.blueprints.user.models.domain import Domain
-from app.blueprints.base.models.feedback import Feedback
 import time
+from app.extensions import db
+from sqlalchemy import exists
+from flask_login import current_user
 
 celery = create_celery_app()
-
-
-@celery.task()
-def populate_domain(domain_id):
-    from app.blueprints.base.functions import generate_private_key, print_traceback
-
-    try:
-        d = Domain.query.filter(Domain.domain_id == domain_id).scalar()
-        d.private_key = generate_private_key()
-        d.save()
-
-        return True
-    except Exception as e:
-        print_traceback(e)
-        return False
-
-
-@celery.task()
-def create_heroku_subdomain(subdomain):
-    # Create the subdomain in Heroku
-    from app.blueprints.base.dns.heroku import create_subdomain
-    return create_subdomain(subdomain)
 
 
 @celery.task()
@@ -35,31 +14,51 @@ def encrypt_string(plaintext):
 
 
 @celery.task()
-def format_comments(feedback_id, user_id):
-    from app.blueprints.base.functions import format_comments
-    from app.blueprints.base.models.comment import Comment
-    from app.blueprints.user.models.user import User
+def sync_product(source_id, destination_id, product_id, destination_products):
+    from app.blueprints.shopify.functions import sync_or_create_product, add_source_tag
+    from app.blueprints.shopify.functions import get_product_by_id
+    from app.blueprints.shopify.models.product import SyncedProduct
+    from app.blueprints.shopify.models.shop import Shop
 
-    is_admin = False
+    source = Shop.query.filter(Shop.shop_id == source_id).scalar()
+    if source is None:
+        return
 
-    if user_id:
-        user = User.query.filter(User.id == user_id).scalar()
+    # Get the synced product for the table
+    p = SyncedProduct.query.filter(SyncedProduct.source_product_id == product_id).scalar()
+    if p is None:
+        return
 
-        f = Feedback.query.filter(Feedback.feedback_id == feedback_id).scalar()
-        if f is not None:
-            d = Domain.query.filter(Domain.domain_id == f.domain_id).scalar()
+    # Get the product from the source store via its id
+    product = get_product_by_id(source, product_id, return_json=True)
 
-            if d is not None:
-                is_admin = (user.domain_id == d.domain_id)
-    else:
-        user = None
-    comments = Comment.query.filter(Comment.feedback_id == feedback_id).all()
+    # Add the source product's id to the tag in order to identify it during sync
+    add_source_tag(product, product_id)
 
-    return format_comments(comments, user, is_admin)
+    # Create or update the product in the destination store
+    destination_product_id = sync_or_create_product(destination_id, product, destination_products)
+
+    # Update the newly created product's destination product id in the table.
+    if destination_product_id is not None:
+        p.destination_product_id = destination_product_id
+        p.save()
 
 
 @celery.task()
-def delete_demo_feedback(feedback_id):
-    f = Feedback.query.filter(Feedback.feedback_id == feedback_id).scalar()
-    time.sleep(10)
-    f.delete()
+def update_product(destination_shop_id, destination_product_id, source_product):
+    from app.blueprints.shopify.functions import update_product
+    update_product(destination_shop_id, destination_product_id, source_product)
+
+
+@celery.task()
+def create_product(destination_shop_id, source_product):
+    from app.blueprints.shopify.functions import create_product
+    create_product(destination_shop_id, source_product)
+
+
+@celery.task()
+def delete_syncs(token, url, products):
+    from app.blueprints.shopify.functions import delete_product
+
+    for product in products:
+        delete_product(token, url, product)

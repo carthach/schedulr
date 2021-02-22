@@ -10,7 +10,6 @@ from app.extensions import cache, db
 from app.app import create_celery_app
 from app.blueprints.user.models.user import User
 
-
 celery = create_celery_app()
 
 send = True
@@ -43,11 +42,11 @@ def deliver_password_reset_email(user_id, reset_token):
 
 # Sending emails -------------------------------------------------------------------
 @celery.task()
-def send_creator_welcome_email(email):
-    from app.blueprints.user.emails import send_creator_welcome_email
+def send_owner_welcome_email(email):
+    from app.blueprints.user.emails import send_owner_welcome_email
 
     if send:
-        send_creator_welcome_email(email)
+        send_owner_welcome_email(email)
     return
 
 
@@ -83,5 +82,3 @@ def send_cancel_email(email):
     if send:
         send_cancel_email(email)
     return
-
-

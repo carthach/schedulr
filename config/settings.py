@@ -6,6 +6,7 @@ PRODUCTION = os.environ.get('PRODUCTION', None)
 
 SERVER_NAME = os.environ.get('SERVER_NAME', None)
 SITE_NAME = os.environ.get('SITE_NAME', None)
+APP_NAME = os.environ.get('APP_NAME', None)
 REMEMBER_COOKIE_DOMAIN = os.environ.get('REMEMBER_COOKIE_DOMAIN', None)
 HEROKU_APP_NAME = os.environ.get('HEROKU_APP_NAME', None)
 
@@ -15,6 +16,17 @@ LOG_LEVEL = 'DEBUG'  # CRITICAL / ERROR / WARNING / INFO / DEBUG
 SECRET_KEY = os.environ.get('SECRET_KEY', None)
 CRYPTO_KEY = os.environ.get('CRYPTO_KEY', None)
 PASSWORD = os.environ.get('PASSWORD', None)
+
+# Shopify
+SHOPIFY_API_KEY = os.environ.get('SHOPIFY_API_KEY', None)
+SHOPIFY_SHARED_SECRET = os.environ.get('SHOPIFY_SHARED_SECRET', None)
+SHOPIFY_SHOP_ID = os.environ.get('SHOPIFY_SHOP_ID', None)
+SHOPIFY_API_VERSION = os.environ.get('SHOPIFY_API_VERSION', None)
+SHOPIFY_SHOP_URL = os.environ.get('SHOPIFY_SHOP_URL', None)
+SERVER_HOSTNAME = "recurrify.io"
+SERVER_BASE_URL = "https://" + SERVER_HOSTNAME + "/shopify"
+INSTALL_REDIRECT_URL = SERVER_BASE_URL + "/shopify/finalize"
+WEBHOOK_APP_UNINSTALL_URL = "https://" + SERVER_HOSTNAME + "/auth/callback"
 
 # Flask-Mail.
 MAIL_USERNAME = os.environ.get('MAIL_USERNAME', None)

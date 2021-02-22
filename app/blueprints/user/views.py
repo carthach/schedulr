@@ -19,67 +19,72 @@ from flask_login import (
 import time
 import random
 import requests
+import pprint
 from operator import attrgetter
 from flask_cors import cross_origin
-
+from flask_paginate import Pagination, get_page_args
 from lib.safe_next_url import safe_next_url
 from app.blueprints.user.decorators import anonymous_required
-from app.blueprints.user.models.user import User, Domain
+from app.blueprints.shopify.functions import get_all_products, update_sync, get_product_count, get_product_by_id
+from app.blueprints.user.models.user import User
+from app.blueprints.base.functions import get_pagination
+from app.blueprints.shopify.models.shop import Shop
+from app.blueprints.shopify.models.sync import Sync
+from app.blueprints.shopify.models.product import SyncedProduct
+from app.blueprints.shopify.models.plan import Plan
 from app.blueprints.user.forms import (
     LoginForm,
-    LoginFormAnon,
+    LoginFormExistingStore,
     BeginPasswordResetForm,
     PasswordResetForm,
-    SignupForm,
-    SignupFormAnon,
+    SignupFormDestinationStore,
+    SignupFormSourceStore,
     WelcomeForm,
     UpdateCredentials)
 
 from app.extensions import cache, csrf, timeout, db
 from importlib import import_module
 from sqlalchemy import or_, and_, exists, inspect, func
-from app.blueprints.base.models.feedback import Feedback
-from app.blueprints.base.models.status import Status
-from app.blueprints.base.models.vote import Vote
-from app.blueprints.base.models.comment import Comment
 from app.blueprints.base.functions import is_admin
 
 user = Blueprint('user', __name__, template_folder='templates')
 use_username = False
 
 
+"""
+User
+"""
+
+
 # Login and Credentials -------------------------------------------------------------------
 @user.route('/login', methods=['GET', 'POST'])
-@user.route('/login', subdomain='<subdomain>', methods=['GET', 'POST'])
 @anonymous_required()
 @csrf.exempt
-def login(subdomain=None):
+def login():
 
-    if subdomain:
-        # form = LoginForm(next=request.args.get('next'))
-        form = LoginForm(next=request.referrer)
+    # This is when setting up a destination store, and the user already has an account with a source store
+    if 'shopify_url' in session and session['shopify_url'] is not None and 'shopify_email' in session and session['shopify_email'] is not None:
+        form = LoginFormExistingStore()
+        form.url.data = session['shopify_url']
+        form.identity.data = session['shopify_email']
 
         if form.validate_on_submit():
-
             u = User.find_by_identity(request.form.get('identity'))
 
             if u and u.is_active() and u.authenticated(password=request.form.get('password')):
-                if login_user(u, remember=True) and u.is_active():
 
-                    if current_user.role == 'admin':
-                        return redirect(url_for('admin.dashboard'))
+                if login_user(u, remember=True) and u.is_active():
 
                     u.update_activity_tracking(request.remote_addr)
 
                     next_url = request.form.get('next')
-                    # next_url = request.referrer
 
-                    if next_url == url_for('user.login', subdomain=subdomain) or next_url == '' or next_url is None:
-                        next_url = url_for('user.dashboard', subdomain=subdomain)
+                    if next_url == url_for('user.login') or next_url == '' or next_url is None:
+                        # Take them to the settings page
+                        next_url = url_for('user.start', shop_url=session['shopify_url'])
 
                     if next_url:
                         return redirect(safe_next_url(next_url), code=307)
-
                 else:
                     flash('This account has been disabled.', 'error')
             else:
@@ -89,24 +94,14 @@ def login(subdomain=None):
             if len(form.errors) > 0:
                 print(form.errors)
 
-        return render_template('user/login.html', subdomain=subdomain, form=form)
+        return render_template('user/login_existing_store.html', form=form, url=session['shopify_url'])
     else:
-        form = LoginFormAnon(next=request.args.get('next'))
+        form = LoginForm(next=request.args.get('next'))
 
         if form.validate_on_submit():
             u = User.find_by_identity(request.form.get('identity'))
 
             if u and u.is_active() and u.authenticated(password=request.form.get('password')):
-
-                # If the user doesn't have a company, make them sign up for one
-                subdomain = request.form.get('domain')
-
-                # Check if the entered domain exists
-                if subdomain:
-                    if not db.session.query(exists().where(func.lower(Domain.name) == subdomain.lower())).scalar():
-                        flash(Markup("That domain wasn't found. Please try again or <a href='" + url_for('user.signup') + "'><span class='text-indigo-700'><u>create a new company</span></u></a>."),
-                              category='error')
-                        return render_template('user/login.html', form=form)
 
                 if login_user(u, remember=True) and u.is_active():
                     if current_user.role == 'admin':
@@ -117,18 +112,8 @@ def login(subdomain=None):
                     next_url = request.form.get('next')
 
                     if next_url == url_for('user.login') or next_url == '' or next_url is None:
-
-                        # If they entered a domain in the form, take them there after login
-                        if subdomain:
-                            next_url = url_for('user.dashboard', subdomain=subdomain)
-                        else:
-
-                            # If not, and they have a domain, take them to that dashboard
-                            if u.domain:
-                                next_url = url_for('user.dashboard', subdomain=u.domain)
-                            # Otherwise, take them to their settings page.
-                            else:
-                                next_url = url_for('user.settings')
+                        # Take them to the settings page
+                        next_url = url_for('user.dashboard')
 
                     if next_url:
                         return redirect(safe_next_url(next_url), code=307)
@@ -148,115 +133,82 @@ def login(subdomain=None):
 
 
 '''
-Signup to post feedback in an existing domain
+Signup with an account
 '''
 
 
 @user.route('/signup', methods=['GET', 'POST'])
-@user.route('/signup', subdomain='<subdomain>', methods=['GET', 'POST'])
 @anonymous_required()
 @csrf.exempt
-def signup(subdomain=None):
+def signup():
     from app.blueprints.base.functions import print_traceback
-    if subdomain:
-        form = SignupForm()
+    form = SignupFormSourceStore()
 
-        try:
-            if form.validate_on_submit():
-                if db.session.query(exists().where(User.email == request.form.get('email'))).scalar():
-                    flash('There is already an account with this email. Please login.', 'error')
-                    return redirect(url_for('user.login', subdomain=subdomain))
+    # Populate the form
+    if 'shopify_url' in session and 'shopify_email' in session:
+        form.url.data = session['shopify_url']
+        form.email.data = session['shopify_email']
 
-                u = User()
+    try:
+        if form.validate_on_submit():
+            if db.session.query(exists().where(User.email == request.form.get('email'))).scalar():
+                flash(Markup("There is already an account using this email. Please use another or <a href='" + url_for(
+                    'user.login') + "'><span class='text-indigo-700'><u>login</span></u></a>."), category='error')
+                return redirect(url_for('user.signup'))
 
-                form.populate_obj(u)
-                u.password = User.encrypt_password(request.form.get('password'))
-                u.role = 'member'
-                u.save()
+            u = User()
 
-                if login_user(u):
-                    from app.blueprints.user.tasks import send_creator_welcome_email
-                    # from app.blueprints.contact.mailerlite import create_subscriber
+            form.populate_obj(u)
+            u.password = User.encrypt_password(request.form.get('password'))
+            u.role = 'owner'
 
-                    send_member_welcome_email.delay(current_user.email, subdomain)
-                    # create_subscriber(current_user.email)
+            # Save the user to the database
+            u.save()
 
-                    flash("You've successfully signed up!", 'success')
-                    return redirect(url_for('user.dashboard', subdomain=subdomain))
-        except Exception as e:
-            print_traceback(e)
+            if login_user(u):
 
-        return render_template('user/signup.html', subdomain=subdomain, form=form)
-    else:
-        form = SignupFormAnon()
+                # Set the shop's user id to the current user
+                if 'shopify_id' in session and session['shopify_id'] is not None:
+                    shop = Shop.query.filter(Shop.shopify_id == session['shopify_id']).scalar()
+                    if shop is not None:
+                        shop.user_id = u.id
+                        shop.save()
 
-        try:
-            if form.validate_on_submit():
-                if db.session.query(exists().where(User.email == request.form.get('email'))).scalar():
-                    flash('There is already an account with this email. Please login.', 'error')
+                        flash("You've successfully signed up!", 'success')
+                        return redirect(url_for('user.start', shop_url=shop.url))
 
-                    u = User.query.filter(User.email == request.form.get('email')).scalar()
-                    if u.domain is not None:
-                        return redirect(url_for('user.login', subdomain=u.domain))
-                    return redirect(url_for('user.login'))
+                # from app.blueprints.user.tasks import send_owner_welcome_email
+                # from app.blueprints.contact.mailerlite import create_subscriber
 
-                subdomain = request.form.get('domain').replace(' ', '')
+                # send_owner_welcome_email.delay(current_user.email)
+                # create_subscriber(current_user.email)
 
-                if db.session.query(exists().where(func.lower(Domain.name) == subdomain.lower())).scalar():
-                    flash('That domain is already in use. Please try another.', 'error')
-                    return render_template('user/signup.html', form=form)
+                # Log the user in
+                flash("You've successfully signed up!", 'success')
+                return redirect(url_for('user.dashboard'))
+            else:
+                # Delete the shop from the database
+                if 'shopify_id' in session and session['shopify_id'] is not None:
+                    shop = Shop.query.filter(Shop.shopify_id == session['shopify_id']).scalar()
+                    if shop is not None:
+                        shop.delete()
+    except Exception as e:
+        # Delete the shop from the database
+        if 'shopify_id' in session and session['shopify_id'] is not None:
+            shop = Shop.query.filter(Shop.shopify_id == session['shopify_id']).scalar()
+            if shop is not None:
+                shop.delete()
+        print_traceback(e)
 
-                u = User()
-
-                form.populate_obj(u)
-                u.password = User.encrypt_password(request.form.get('password'))
-                u.role = 'creator'
-                
-                # Save the user to the database
-                u.save()
-
-                if login_user(u):
-                    from app.blueprints.user.tasks import send_creator_welcome_email
-                    # from app.blueprints.contact.mailerlite import create_subscriber
-
-                    send_creator_welcome_email.delay(current_user.email)
-                    # create_subscriber(current_user.email)
-
-                    # Create the domain from the form, as well as the heroku subdomain
-                    from app.blueprints.base.functions import create_domain
-                    from app.blueprints.base.tasks import populate_domain, create_heroku_subdomain
-
-                    # Create the domain in the database
-                    d = create_domain(u, form.domain.data, form.company.data)
-
-                    # Populate the domain with a private key
-                    populate_domain.delay(d)
-
-                    # Create the Heroku and Cloudflare subdomains
-                    create_heroku_subdomain.delay(form.domain.data)
-
-                    # Log the user in
-                    flash("You've successfully signed up!", 'success')
-                    return redirect(url_for('user.start', subdomain=subdomain))
-        except Exception as e:
-            print_traceback(e)
-
-        return render_template('user/signup.html', form=form)
+    return render_template('user/signup.html', form=form)
 
 
 @user.route('/logout')
-@user.route('/logout', subdomain='<subdomain>')
 @login_required
-def logout(subdomain=None):
-    if subdomain:
-        logout_user()
-        # next = request.referrer
-        flash('You have been logged out.', 'success')
-        return redirect(url_for('user.dashboard', subdomain=subdomain))
-    else:
-        logout_user()
-        flash('You have been logged out.', 'success')
-        return redirect(url_for('user.login'))
+def logout():
+    logout_user()
+    flash('You have been logged out.', 'success')
+    return redirect(url_for('user.login'))
 
 
 @user.route('/account/begin_password_reset', methods=['GET', 'POST'])
@@ -297,24 +249,9 @@ def password_reset():
     return render_template('user/password_reset.html', form=form)
 
 
-@user.route('/start', methods=['GET', 'POST'])
-@user.route('/start/<subdomain>', methods=['GET', 'POST'])
-@login_required
-def start(subdomain=None):
-    if not current_user.is_authenticated:
-        return redirect(url_for('user.login'))
-
-    if not current_user.domain == subdomain:
-        return redirect(url_for('user.settings'))
-
-    domain = Domain.query.filter(Domain.name == current_user.domain).scalar()
-    return render_template('user/start.html', current_user=current_user, domain=domain, subdomain=subdomain)
-
-
 @user.route('/settings/update_credentials', methods=['GET', 'POST'])
-@user.route('/settings/update_credentials', subdomain='<subdomain>', methods=['GET', 'POST'])
 @login_required
-def update_credentials(subdomain=None):
+def update_credentials():
     form = UpdateCredentials(current_user, uid=current_user.id)
 
     if form.validate_on_submit():
@@ -331,552 +268,308 @@ def update_credentials(subdomain=None):
         current_user.save()
 
         flash('Your credentials have been updated.', 'success')
-        return redirect(url_for('user.settings', subdomain=subdomain))
-
-    return render_template('user/update_credentials.html', form=form, subdomain=subdomain)
-
-
-@user.route('/dashboard', methods=['GET','POST'])
-@user.route('/dashboard', subdomain='<subdomain>', methods=['GET','POST'])
-@csrf.exempt
-@cross_origin()
-def dashboard(subdomain=None):
-    demo = False
-    from app.blueprints.base.functions import get_new_feedback
-    new_feedback = get_new_feedback(current_user)
-
-    if subdomain:
-        from app.blueprints.api.functions import site_exists
-        # if not site_exists(subdomain):
-        #     return redirect(url_for('user.settings'))
-
-        if subdomain == 'demo':
-            demo = True
-            d = Domain.query.filter(Domain.name == 'demo').scalar()
-        else:
-            d = Domain.query.filter(Domain.name == subdomain).scalar()
-
-        if d is not None:
-            if is_admin(current_user, d.name):
-                feedbacks = Feedback.query.filter(and_(Feedback.domain_id == d.domain_id, Feedback.approved.is_(True), Feedback.status_id != 5964768)).all()
-            else:
-                feedbacks = Feedback.query.filter(and_(Feedback.domain_id == d.domain_id, Feedback.approved.is_(True))).all()
-
-            if current_user.is_authenticated:
-                votes = Vote.query.filter(and_(Vote.user_id == current_user.id, Vote.domain_id == d.domain_id)).all()
-            else:
-                votes = None
-
-            statuses = Status.query.all()
-
-            for f in feedbacks:
-                f.votes = int(f.votes)
-                f.comments = int(f.comments)
-
-            feedbacks.sort(key=lambda x: x.created_on, reverse=True)
-            return render_template('user/dashboard.html',
-                                   current_user=current_user,
-                                   feedbacks=feedbacks,
-                                   new_feedback=new_feedback,
-                                   statuses=statuses,
-                                   domain=d,
-                                   demo=demo,
-                                   subdomain=subdomain,
-                                   votes=votes,
-                                   admin=is_admin(current_user, d.name),
-                                   use_username=use_username)
-        return redirect(url_for('user.settings', subdomain=subdomain))
-    else:
-        subdomain = 'demo'
-        demo = True
-
-        d = Domain.query.filter(Domain.name == subdomain).scalar()
-        feedbacks = Feedback.query.all()
-        statuses = Status.query.all()
-
-        for f in feedbacks:
-            f.votes = int(f.votes)
-
-        feedbacks.sort(key=lambda x: x.created_on, reverse=True)
-        return render_template('user/dashboard.html',
-                               current_user=current_user,
-                               feedbacks=feedbacks,
-                               statuses=statuses,
-                               domain=d,
-                               subdomain=subdomain,
-                               demo=demo,
-                               admin=is_admin(current_user, d.name),
-                               use_username=use_username)
-
-
-@user.route('/dashboard/<domain>', methods=['GET','POST'])
-@csrf.exempt
-@cross_origin()
-def dashboard_redirect(domain):
-    return redirect(url_for('user.dashboard', subdomain=domain))
-
-
-@user.route('/dashboard', methods=['GET','POST'])
-@csrf.exempt
-@cross_origin()
-def demo():
-    return redirect(url_for('user.dashboard', subdomain='demo'))
-
-
-# Feedback -------------------------------------------------------------------
-'''
-View feedback details
-'''
-
-
-@user.route('/feedback/<feedback_id>', methods=['GET','POST'])
-@user.route('/feedback/<feedback_id>', subdomain='<subdomain>', methods=['GET','POST'])
-@csrf.exempt
-@cross_origin()
-def feedback(feedback_id, subdomain):
-    from app.blueprints.base.functions import get_new_feedback
-    new_feedback = get_new_feedback(current_user)
-
-    demo = False
-    if subdomain == 'demo':
-        demo = True
-
-    f = Feedback.query.filter(Feedback.feedback_id == feedback_id).scalar()
-    d = Domain.query.filter(Domain.name == subdomain).scalar()
-
-    # If the feedback isn't approved yet, only let creators view it
-    if not f.approved:
-        if not is_admin(current_user, subdomain):
-            return redirect(url_for('user.dashboard', subdomain=subdomain))
-
-    # Redirect if feedback no longer exists
-    if f is None:
-        return redirect(url_for('user.dashboard', subdomain=subdomain))
-
-    # Determine whether the current user voted on the feedback or not
-    if current_user.is_authenticated:
-        voted = db.session.query(exists().where(and_(Vote.feedback_id == feedback_id, Vote.user_id == current_user.id))).scalar()
-    else:
-        voted = False
-
-    votes = len(Vote.query.filter(Vote.feedback_id == feedback_id).all())
-    comments = len(Comment.query.filter(Comment.feedback_id == feedback_id).all())
-
-    # Get the statuses
-    statuses = Status.query.all()
-    return render_template('user/view_feedback.html',
-                           current_user=current_user,
-                           feedback=f,
-                           domain=d,
-                           vote_count=votes,
-                           comment_count=comments,
-                           statuses=statuses,
-                           subdomain=subdomain,
-                           voted=voted,
-                           demo=demo,
-                           new_feedback=new_feedback,
-                           use_username=use_username)
-
-
-'''
-Add feedback to the list
-'''
-
-
-@user.route('/add_feedback', methods=['POST'])
-@user.route('/add_feedback', subdomain='<subdomain>', methods=['POST'])
-@csrf.exempt
-@cross_origin()
-def add_feedback(subdomain=None):
-    if subdomain:
-        # If there is no user, redirect them to the login for this domain
-        # if not current_user.is_authenticated:
-            # return redirect(url_for('user.login', subdomain=subdomain))
-
-        if request.method == 'POST':
-            try:
-                title = request.form['title']
-                description = request.form['description']
-                email = request.form['email'] if 'email' in request.form else ''
-
-                from app.blueprints.base.functions import create_feedback
-
-                if current_user.is_authenticated:
-                    f = create_feedback(current_user, subdomain, None, title, description)
-
-                    # Delete demo feedback after 60 seconds
-                    if subdomain == 'demo':
-                        from app.blueprints.base.tasks import delete_demo_feedback
-                        delete_demo_feedback.delay(f.feedback_id)
-                else:
-                    f = create_feedback(None, subdomain, email, title, description)
-
-                    # Delete demo feedback after 60 seconds
-                    if subdomain == 'demo':
-                        from app.blueprints.base.tasks import delete_demo_feedback
-                        delete_demo_feedback.delay(f.feedback_id)
-
-                return redirect(url_for('user.dashboard', subdomain=subdomain))
-            except Exception:
-                flash("Uh oh, something went wrong!", "error")
-                return redirect(url_for('user.dashboard', subdomain=subdomain))
-
-        return render_template('user/add_feedback.html', current_user=current_user, subdomain=subdomain)
-    else:
-        if request.method == 'POST':
-            try:
-                title = request.form['title']
-                description = request.form['description']
-                email = request.form['email'] if 'email' in request.form else None
-
-                from app.blueprints.base.functions import create_feedback
-
-                if current_user.is_authenticated:
-                    f = create_feedback(current_user, 'demo', None, title, description)
-                else:
-                    f = create_feedback(None, 'demo', email, title, description)
-
-                from app.blueprints.base.tasks import delete_demo_feedback
-                delete_demo_feedback.delay(f.feedback_id)
-
-                return redirect(url_for('user.dashboard'))
-            except Exception:
-                flash("Uh oh, something went wrong!", "error")
-                return redirect(url_for('user.dashboard'))
-
-        return render_template('user/add_feedback.html', current_user=current_user)
-
-
-'''
-Update the feedback
-'''
-
-
-@user.route('/update_feedback', subdomain='<subdomain>', methods=['POST'])
-@csrf.exempt
-@cross_origin()
-def update_feedback(subdomain=None):
-    if request.method == 'POST':
-        try:
-            feedback_id = request.form['feedback_id']
-            title = request.form['title']
-            description = request.form['description']
-            status_id = request.form['status']
-
-            from app.blueprints.base.functions import update_feedback
-            if update_feedback(feedback_id, subdomain, title, description, status_id) is not None:
-                return redirect(url_for('user.feedback', feedback_id=feedback_id, subdomain=subdomain))
-
-            flash("Uh oh, something went wrong!", "error")
-            return redirect(url_for('user.dashboard', subdomain=subdomain))
-        except Exception:
-            flash("Uh oh, something went wrong!", "error")
-            return redirect(url_for('user.dashboard', subdomain=subdomain))
-
-    return render_template('user/add_feedback.html', current_user=current_user, subdomain=subdomain)
-
-
-'''
-Delete the feedback
-'''
-
-
-@user.route('/delete_feedback/<feedback_id>', subdomain='<subdomain>', methods=['GET'])
-@csrf.exempt
-@cross_origin()
-def delete_feedback(feedback_id, subdomain=None):
-    try:
-        f = Feedback.query.filter(Feedback.feedback_id == feedback_id).scalar()
-        f.delete()
-
-        return redirect(url_for('user.dashboard', subdomain=subdomain))
-    except Exception:
-        flash("Uh oh, something went wrong!", "error")
-        return redirect(url_for('user.feedback', feedback_id=feedback_id, subdomain=subdomain))
-
-
-'''
-Sort the feedback by newest, oldest, or most votes
-'''
-
-
-@user.route('/dashboard/<s>', methods=['GET', 'POST'])
-@user.route('/dashboard/<s>', subdomain='<subdomain>', methods=['GET','POST'])
-@csrf.exempt
-@cross_origin()
-def sort_feedback(s, subdomain=None):
-    if subdomain:
-        if is_admin(current_user, subdomain):
-            feedbacks = Feedback.query.filter(and_(Feedback.domain == subdomain, Feedback.status_id != 5964768)).all()
-        else:
-            feedbacks = Feedback.query.filter(Feedback.domain == subdomain).all()
-        d = Domain.query.filter(Domain.name == subdomain).scalar()
-        statuses = Status.query.all()
-
-        if s == 'newest':
-            feedbacks.sort(key=lambda x: x.created_on, reverse=True)
-        elif s == 'oldest':
-            feedbacks.sort(key=lambda x: x.created_on)
-        else:
-            for f in feedbacks:
-                f.votes = int(f.votes)
-
-            feedbacks.sort(key=lambda x: x.votes, reverse=True)
-
-        return render_template('user/dashboard.html', current_user=current_user, feedbacks=feedbacks, statuses=statuses, s=s, domain=d, subdomain=subdomain)
-    else:
-        feedbacks = Feedback.query.filter(Feedback.domain == 'demo').all()
-        d = Domain.query.filter(Domain.name == 'demo').scalar()
-        statuses = Status.query.all()
-
-        if s == 'newest':
-            feedbacks.sort(key=lambda x: x.created_on, reverse=True)
-        elif s == 'oldest':
-            feedbacks.sort(key=lambda x: x.created_on)
-        else:
-            for f in feedbacks:
-                f.votes = int(f.votes)
-
-            feedbacks.sort(key=lambda x: x.votes, reverse=True)
-
-        return render_template('user/dashboard.html', current_user=current_user, feedbacks=feedbacks, statuses=statuses, s=s, domain=d, subdomain=demo)
-
-
-@user.route('/feedback_approval', subdomain='<subdomain>', methods=['GET','POST'])
-@csrf.exempt
-@cross_origin()
-def feedback_approval(subdomain=None):
-    from app.blueprints.base.functions import get_new_feedback
-    new_feedback = get_new_feedback(current_user)
-
-    if not subdomain:
         return redirect(url_for('user.settings'))
-    else:
-        d = Domain.query.filter(Domain.name == subdomain).scalar()
 
-        if not is_admin(current_user, subdomain):
-            return redirect(url_for('user.settings'))
-
-        if d is not None:
-            feedbacks = Feedback.query.filter(and_(Feedback.domain_id == d.domain_id, Feedback.approved.is_(False))).all()
-
-            feedbacks.sort(key=lambda x: x.created_on, reverse=True)
-            return render_template('user/approval.html',
-                                   current_user=current_user,
-                                   feedbacks=feedbacks,
-                                   domain=d,
-                                   subdomain=subdomain,
-                                   new_feedback=new_feedback,
-                                   use_username=use_username)
-        return redirect(url_for('user.settings', subdomain=subdomain))
+    return render_template('user/update_credentials.html', form=form)
 
 
-@user.route('/approve_feedback', methods=['GET', 'POST'])
-# @login_required
+"""
+Pages
+"""
+
+
+@user.route('/dashboard/', methods=['GET', 'POST'])
+@user.route('/dashboard/<int:page>', methods=['GET', 'POST'])
 @csrf.exempt
-def approve_feedback():
+@cross_origin()
+def dashboard(page=1):
+    shop = Shop.query.filter(Shop.user_id == current_user.id).scalar()
+
+    products = get_all_products(shop)
+
+    # How many products per page
+    offset = 20
+    page_start, page_finish, pagination, total_pages = get_pagination(products, offset, page)
+    prev_page, next_page = page - 1, page + 1
+
+    # Print the list
+    # pprint.pprint(products)
+
+    return render_template('user/dashboard.html', current_user=current_user, total=len(products),
+                           products=pagination, start=page_start, finish=page_finish,
+                           total_pages=total_pages, page=page, prev=prev_page, next=next_page)
+
+
+@user.route('/start', methods=['GET', 'POST'])
+@user.route('/start/<shop_url>', methods=['GET', 'POST'])
+@login_required
+def start(shop_url):
+    if not current_user.is_authenticated:
+        return redirect(url_for('user.login'))
+
+    shop = Shop.query.filter(Shop.url == shop_url).scalar()
+    if shop is None:
+        return redirect(url_for('user.dashboard'))
+
+    pending = Sync.query.filter(and_(Sync.destination_url == shop_url, Sync.active.is_(False))).all()
+    plans = Plan.query.all()
+
+    return render_template('user/start.html', current_user=current_user, shop_id=shop.shop_id, pending=pending, plans=plans)
+
+
+# Settings -------------------------------------------------------------------
+@user.route('/settings', methods=['GET', 'POST'])
+@login_required
+@csrf.exempt
+def settings():
+    shop = Shop.query.filter(Shop.user_id == current_user.id).scalar()
+
+    if shop is None:
+        return redirect(url_for('user.logout'))
+    destinations = [x.destination_url for x in Sync.query.filter(Sync.user_id == current_user.id)]
+    return render_template('user/settings.html', current_user=current_user, shop=shop, destinations=destinations)
+
+
+"""
+Syncing
+"""
+
+
+@user.route('/sync/', methods=['GET', 'POST'])
+@user.route('/sync/<sync_id>', methods=['GET', 'POST'])
+@csrf.exempt
+@cross_origin()
+def sync(sync_id=None):
+    if sync_id is not None:
+        s = Sync.query.filter(Sync.sync_id == sync_id).scalar()
+        if s is None:
+            return redirect(url_for('user.dashboard'))
+
+        source = Shop.query.filter(Shop.shop_id == s.source_id).scalar()
+        destination = Shop.query.filter(Shop.shop_id == s.destination_id).scalar()
+
+        if source is None or destination is None:
+            return redirect(url_for('user.dashboard'))
+
+        products = get_all_products(source)
+        # products = products * 10
+        synced_product_ids = [str(x.source_product_id) for x in SyncedProduct.query.filter(SyncedProduct.sync_id == sync_id)]
+
+        # Get the plan limit
+        p = Plan.query.filter(Plan.id == s.plan_id).scalar()
+        limit = p.limit if p is not None and p.limit is not None else 3
+
+        return render_template('user/sync.html', sync=s, source=source, destination=destination, products=products,
+                               product_ids=synced_product_ids, limit=limit)
+    else:
+        shop = Shop.query.filter(Shop.user_id == current_user.id).scalar()
+        plans = Plan.query.all()
+        return render_template('user/create_sync.html', shop=shop, plans=plans)
+
+
+@user.route('/create_sync', methods=['GET', 'POST'])
+@login_required
+def create_sync():
+    if not current_user.is_authenticated:
+        return redirect(url_for('user.login'))
+    if request.method == 'POST':
+        if 'shop_id' in request.form:
+            s = Shop.query.filter(Shop.shop_id == request.form['shop_id']).scalar()
+            if s is not None:
+                # They're on the start page
+                if 'store_type' in request.form:
+                    # They're setting it up as a destination store
+                    if request.form['store_type'] == 'destination':
+                        t = Sync.query.filter(Sync.destination_url == request.form['source_url']).scalar()
+                        if t is not None:
+                            t.destination_url = s.url
+                            t.destination_id = s.shop_id
+                            t.save()
+
+                            flash(Markup("You're successfully synced with " + request.form['source_url'] + "."),
+                                  category='success')
+                            return redirect(url_for('user.syncs'))
+                        else:
+                            flash("There was an error.", "error")
+                            return redirect(url_for('user.settings'))
+
+                    # They're setting it up as a source store
+                    s.source = True
+                    s.save()
+                    flash(Markup("You've successfully set up your store to sync with others. Click \"Sync a new store!\" "
+                                 "above to sell your products on another store."), category='success')
+
+                # They're on the sync page
+                else:
+                    # Create a new sync
+                    if 'destination_url' and 'plan_id' in request.form:
+                        destination_url = request.form['destination_url']
+
+                        if db.session.query(exists().where(and_(Sync.source_id == s.shop_id, Sync.destination_url == destination_url))).scalar():
+                            flash(Markup("There is already an existing sync with " + destination_url + ". Please go to stores above to see syncs."), category='error')
+                            return redirect(url_for('user.dashboard'))
+
+                        plan = request.form['plan_id']
+
+                        # Get the associated plan
+                        p = Plan.query.filter(Plan.tag == plan).scalar()
+
+                        if p is None:
+                            flash(Markup("There was an error. Please try again."), category='error')
+                            return redirect(url_for('user.dashboard'))
+
+                        # Create the sync
+                        t = Sync()
+                        t.source_id = s.shop_id
+                        t.source_url = s.url
+                        t.destination_url = destination_url
+                        t.plan = p.tag
+                        t.plan_id = p.id
+                        t.user_id = current_user.id
+
+                        t.save()
+
+                        flash(Markup("You've initiated a sync with " + destination_url + ". That store owner needs to install " + current_app.config.get('APP_NAME') + " to complete the sync."),
+                              category='success')
+                        return redirect(url_for('user.dashboard', store_id=s.shop_id))
+                    flash(Markup("There was an error. Please try again."), category='error')
+            else:
+                flash(Markup("That store couldn't be found. Please try again."), category='error')
+    return redirect(url_for('user.dashboard'))
+
+
+@user.route('/activate_sync', methods=['GET', 'POST'])
+@login_required
+def activate_sync():
     try:
         if request.method == 'POST':
-            if 'feedback_id' in request.form and 'approve' in request.form:
-                feedback_id = request.form['feedback_id']
-                approve = True if request.form['approve'] == 'true' else False
+            if 'sync_id' in request.form and 'shop_id' in request.form and 'activate' in request.form:
+                sync_id = request.form['sync_id']
+                shop_id = request.form['shop_id']
+                activate = request.form['activate']
 
-                f = Feedback.query.filter(Feedback.feedback_id == feedback_id).scalar()
-                d = Domain.query.filter(Domain.domain_id == f.domain_id).scalar
-                if approve and f is not None and d is not None and is_admin(current_user, d.name):
-                    f.approved = True
-                    f.save()
-                else:
-                    f.delete()
+                s = Sync.query.filter(Sync.sync_id == sync_id).scalar()
+                if s is not None:
+                    s.destination_id = shop_id
+                    s.active = True if activate == 'true' else False
+                    s.save()
 
                 return jsonify({'success': 'Success'})
         return jsonify({'error': 'Error'})
     except Exception as e:
         return jsonify({'error': 'Error'})
 
-# Comments -------------------------------------------------------------------
-'''
-Get comments
-'''
 
-
-@user.route('/get_comments', methods=['GET','POST'])
-@csrf.exempt
-@cross_origin()
-def get_comments():
+@user.route('/submit_sync', methods=['GET', 'POST'])
+@login_required
+def submit_sync():
     try:
         if request.method == 'POST':
-            from app.blueprints.base.tasks import format_comments
-            feedback_id = request.form['feedback_id']
-            user_id = request.form['user_id']
+            if 'sync_id' in request.form:
+                product_ids = list()
+                sync_id = request.form['sync_id']
 
-            comments = format_comments(feedback_id, user_id)
+                # Get the checked products from the page
+                if 'product[]' in request.form:
+                    product_ids = request.form.getlist('product[]')
 
-            return jsonify({'comments': comments})
-    except Exception as e:
-        return jsonify({'comments': None})
+                # Get the count
+                count = update_sync(sync_id, product_ids)
 
-
-'''
-Add a comment
-'''
-
-
-@user.route('/add_comment', methods=['POST'])
-@csrf.exempt
-@cross_origin()
-def add_comment():
-    try:
-        from app.blueprints.base.functions import add_comment
-        if request.method == 'POST':
-            if 'feedback_id' in request.form:
-                feedback_id = request.form['feedback_id']
-                if 'email' in request.form:
-                    email = request.form['email']
-                    parent_id = request.form['parent']
-                    content = request.form['content']
-                    created_by_user = True if request.form['created_by_current_user'] == 'true' else False
-
-                    f = Feedback.query.filter(Feedback.feedback_id == feedback_id).scalar()
-
-                    if f is not None:
-                        if add_comment(feedback_id, content, f.domain_id, None, email, parent_id, created_by_user):
-                            f.comments += 1
-                            f.save()
-                elif 'user_id' in request.form:
-                    user_id = request.form['user_id']
-                    parent_id = request.form['parent']
-                    content = request.form['content']
-                    created_by_user = True if request.form['created_by_current_user'] == 'true' else False
-
-                    f = Feedback.query.filter(Feedback.feedback_id == feedback_id).scalar()
-
-                    if f is not None:
-                        if add_comment(feedback_id, content, f.domain_id, user_id, None, parent_id, created_by_user):
-                            f.comments += 1
-                            f.save()
-                    return jsonify({'result': 'Success'})
-    except Exception as e:
-        return jsonify({'result': 'Error'})
-
-
-'''
-Update a comment
-'''
-
-
-@user.route('/update_comment', methods=['POST'])
-@csrf.exempt
-@cross_origin()
-def update_comment():
-    try:
-        from app.blueprints.base.functions import update_comment
-        if request.method == 'POST':
-            comment_id = request.form['id']
-            content = request.form['content']
-
-            c = Comment.query.filter(Comment.comment_id == comment_id).scalar()
-            if c is not None:
-                update_comment(c, content)
-
-        return jsonify({'result': 'Success'})
-    except Exception as e:
-        return jsonify({'result': 'Error'})
-
-
-# Votes -------------------------------------------------------------------
-'''
-Add or remove a vote
-'''
-
-
-@user.route('/update_vote', subdomain='<subdomain>', methods=['GET','POST'])
-@csrf.exempt
-@cross_origin()
-def update_vote(subdomain=None):
-    try:
-        if request.method == 'POST':
-            if 'feedback_id' in request.form:
-                feedback_id = request.form['feedback_id']
-
-                if 'email' in request.form:
-                    email = request.form['email']
-                    from app.blueprints.base.functions import add_vote
-
-                    f = Feedback.query.filter(Feedback.feedback_id == feedback_id).scalar()
-
-                    if f is not None:
-                        add_vote(f, None, email)
-
-                    return jsonify({'success': 'Success'})
-                elif 'user_id' in request.form:
-                    user_id = request.form['user_id']
-                    from app.blueprints.base.functions import add_vote, remove_vote
-
-                    if db.session.query(exists().where(and_(Vote.feedback_id == feedback_id, Vote.user_id == user_id))).scalar():
-                        vote = Vote.query.filter(and_(Vote.feedback_id == feedback_id, Vote.user_id == user_id)).scalar()
-                        f = Feedback.query.filter(Feedback.feedback_id == feedback_id).scalar()
-
-                        if f is not None:
-                            remove_vote(f, vote)
-                    else:
-                        f = Feedback.query.filter(Feedback.feedback_id == feedback_id).scalar()
-
-                        if f is not None:
-                            add_vote(f, user_id)
-
-                    return jsonify({'success': 'Success'})
+                if count >= 0:
+                    return jsonify({'success': 'Success', 'count': count})
+                return jsonify({'error': 'Error'})
     except Exception as e:
         from app.blueprints.base.functions import print_traceback
         print_traceback(e)
 
-    return redirect(url_for('user.dashboard', subdomain=subdomain))
+        flash("There was an error.", 'error')
+    return redirect(url_for('user.dashboard'))
 
 
-# Widgets -------------------------------------------------------------------
-@user.route('/widgets', methods=['GET','POST'])
-@user.route('/widgets', subdomain='<subdomain>', methods=['GET','POST'])
-def widgets(subdomain=None):
-    if subdomain:
-        return render_template('user/widgets.html', current_user=current_user, subdomain=subdomain)
-    else:
-        return render_template('user/widgets.html', current_user=current_user)
-
-
-# Roadmap -------------------------------------------------------------------
-@user.route('/roadmap', methods=['GET','POST'])
-@user.route('/roadmap', subdomain='<subdomain>', methods=['GET','POST'])
-@csrf.exempt
-def roadmap(subdomain=None):
-    return render_template('user/roadmap.html', current_user=current_user, subdomain=subdomain)
-
-
-# Settings -------------------------------------------------------------------
-@user.route('/settings', methods=['GET','POST'])
-@user.route('/settings', subdomain='<subdomain>', methods=['GET','POST'])
+@user.route('/sync_all_products', methods=['GET', 'POST'])
 @login_required
-@csrf.exempt
-def settings(subdomain=None):
-    from app.blueprints.base.functions import get_new_feedback
-    new_feedback = get_new_feedback(current_user)
+def sync_all_products():
+    try:
+        if request.method == 'POST':
+            if 'sync_id' in request.form:
+                sync_id = request.form['sync_id']
 
-    if subdomain:
-        domain = Domain.query.filter(Domain.user_id == current_user.id).scalar()
-        return render_template('user/settings.html', current_user=current_user, domain=domain, subdomain=subdomain, new_feedback=new_feedback)
+                s = Sync.query.filter(Sync.sync_id == sync_id).scalar()
+
+                from app.blueprints.shopify.functions import sync_all_products
+                success = sync_all_products(s)
+
+                if success:
+                    return jsonify({'success': 'Success'})
+        return jsonify({'error': 'Error'})
+    except Exception as e:
+        from app.blueprints.base.functions import print_traceback
+        print_traceback(e)
+        return jsonify({'error': 'Error'})
+
+
+"""
+Stores and Products
+"""
+
+
+@user.route('/syncs/', methods=['GET', 'POST'])
+@csrf.exempt
+@cross_origin()
+def syncs():
+    sources = Shop.query.filter(and_(Shop.user_id == current_user.id, Shop.source.is_(True))).all()
+    destinations = Sync.query.filter(Sync.user_id == current_user.id).all()
+    plans = Plan.query.all()
+    product_counts = [{'id': x.shop_id, 'count': get_product_count(x)['count']} for x in sources]
+    sync_counts = [{'id': x.sync_id, 'count': SyncedProduct.query.filter(SyncedProduct.sync_id == x.sync_id).count()} for x in destinations]
+    return render_template('user/syncs.html', plans=plans,
+                           sources=sources,
+                           destinations=destinations,
+                           sync_counts=sync_counts,
+                           product_counts=product_counts)
+
+
+@user.route('/product/<product_id>', methods=['GET', 'POST'])
+@csrf.exempt
+@cross_origin()
+def product(product_id):
+    from itertools import chain
+
+    shop = Shop.query.filter(Shop.user_id == current_user.id).scalar()
+    p = get_product_by_id(shop, product_id, return_json=True)
+
+    if p is None:
+        flash("Product not found", 'error')
+        return redirect(url_for('user.dashboard'))
+
+    syncs = [x.sync_id for x in SyncedProduct.query.filter(SyncedProduct.source_product_id == p['id'])]
+    store_names = list(
+        chain.from_iterable([[x.destination_url for x in Sync.query.filter(Sync.sync_id == y)] for y in syncs]))
+
+    return render_template('user/product.html', current_user=current_user, product=p, stores=store_names)
+
+
+@user.route('/dashboard/<s>', methods=['GET', 'POST'])
+@csrf.exempt
+@cross_origin()
+def sort_products(s):
+    shop = Shop.query.filter(Shop.user_id == current_user.id).scalar()
+    products = get_all_products(shop)
+
+    # Print the list
+    # pprint.pprint(products)
+
+    if s == 'alphabetical':
+        products.sort(key=lambda x: x.title)
     else:
-        domain = Domain.query.filter(Domain.user_id == current_user.id).scalar()
-        return render_template('user/settings.html', current_user=current_user, domain=domain, new_feedback=new_feedback)
+        products.sort(key=lambda x: x.created, reverse=True)
+
+    return render_template('user/dashboard.html', current_user=current_user, s=s, products=products)
 
 
 # Actions -------------------------------------------------------------------
-@user.route('/send_invite', subdomain='<subdomain>', methods=['GET','POST'])
-@login_required
-@csrf.exempt
-def send_invite(subdomain=None):
-    return redirect(url_for('user.dashboard', subdomain=subdomain))
-
-
-@user.route('/get_private_key', methods=['GET','POST'])
+@user.route('/get_private_key', methods=['GET', 'POST'])
 @csrf.exempt
 @cross_origin()
 def get_private_key():
@@ -894,84 +587,8 @@ def get_private_key():
     return jsonify({'success': False})
 
 
-@user.route('/check_domain_status', methods=['GET','POST'])
-@login_required
-@csrf.exempt
-@cross_origin()
-def check_domain_status():
-    try:
-        # time.sleep(10)
-        if request.method == 'POST':
-            if 'subdomain' in request.form and 'user_id' in request.form:
-                subdomain = request.form['subdomain']
-                user_id = request.form['user_id']
-
-                u = User.query.filter(User.id == user_id).scalar()
-
-                if subdomain == u.domain:
-                    try:
-
-                        url = 'https://' + subdomain + '.recurrify.io'
-
-                        r = requests.get(url, verify=False)
-
-                        if r.status_code == 200:
-                            r.close()
-                            return jsonify({'result': 'Success', 'code': r.status_code})
-                        else:
-                            r.close()
-                            return jsonify({'result': 'Error', 'code': r.status_code})
-                    except ConnectionError as c:
-                        return jsonify({'result': 'Error'})
-        return jsonify({'result': 'Error'})
-    except Exception as e:
-        from app.blueprints.base.functions import print_traceback
-        print_traceback(e)
-        return jsonify({'result': 'Error'})
-
-
-@user.route('/set_domain_privacy', methods=['GET', 'POST'])
-# @login_required
-@csrf.exempt
-def set_domain_privacy():
-    try:
-        if request.method == 'POST':
-            if 'domain_id' in request.form and 'privacy' in request.form:
-                domain_id = request.form['domain_id']
-                privacy = request.form['privacy']
-
-                d = Domain.query.filter(Domain.domain_id == domain_id).scalar()
-                d.private = True if privacy == 'true' else False
-                d.save()
-
-                return jsonify({'success': 'Success'})
-        return jsonify({'error': 'Error'})
-    except Exception as e:
-        return jsonify({'error': 'Error'})
-
-
-@user.route('/set_domain_approval', methods=['GET', 'POST'])
-# @login_required
-@csrf.exempt
-def set_domain_approval():
-    try:
-        if request.method == 'POST':
-            if 'domain_id' in request.form and 'approval' in request.form:
-                domain_id = request.form['domain_id']
-                approval = request.form['approval']
-
-                d = Domain.query.filter(Domain.domain_id == domain_id).scalar()
-                d.requires_approval = True if approval == 'true' else False
-                d.save()
-
-                return jsonify({'success': 'Success'})
-        return jsonify({'error': 'Error'})
-    except Exception as e:
-        return jsonify({'error': 'Error'})
-
-
 # Contact us -------------------------------------------------------------------
-@user.route('/contact', methods=['GET','POST'])
+@user.route('/contact', methods=['GET', 'POST'])
 @csrf.exempt
 def contact():
     if request.method == 'POST':
@@ -981,17 +598,3 @@ def contact():
         flash('Thanks for your email! You can expect a response shortly.', 'success')
         return redirect(url_for('user.contact'))
     return render_template('user/contact.html', current_user=current_user)
-
-
-# Testing ----------------------------------------------------------------------
-@user.route('/test', methods=['GET','POST'])
-@user.route('/test', subdomain='<subdomain>', methods=['GET','POST'])
-@login_required
-@csrf.exempt
-def test(subdomain=None):
-    if subdomain:
-        domain = Domain.query.filter(Domain.user_id == current_user.id).scalar()
-        return render_template('user/test.html', current_user=current_user, domain=domain, subdomain=subdomain)
-    else:
-        domain = Domain.query.filter(Domain.user_id == current_user.id).scalar()
-        return render_template('user/test.html', current_user=current_user, domain=domain)

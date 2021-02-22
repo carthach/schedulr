@@ -141,7 +141,6 @@ def users_cancel_subscription():
 
     return redirect(url_for('admin.users'))
 
-
 # # Coupons ---------------------------------------------------------------------
 # @admin.route('/coupons', defaults={'page': 1})
 # @admin.route('/coupons/page/<int:page>')
@@ -185,7 +184,7 @@ def users_cancel_subscription():
 #
 #         if Coupon.create(params):
 #             flash('Coupon has been created successfully.', 'success')
-#             return redirect(url_for('admin.coupons'))
+#             return shopify_redirect(url_for('admin.coupons'))
 #
 #     return render_template('admin/coupon/new.html', form=form, coupon=coupon)
 #
@@ -209,4 +208,4 @@ def users_cancel_subscription():
 #     else:
 #         flash('No coupons were deleted, something went wrong.', 'error')
 #
-#     return redirect(url_for('admin.coupons'))
+#     return shopify_redirect(url_for('admin.coupons'))

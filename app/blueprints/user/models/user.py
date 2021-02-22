@@ -15,16 +15,13 @@ from itsdangerous import URLSafeTimedSerializer, \
 from lib.util_sqlalchemy import ResourceMixin, AwareDateTime
 from app.blueprints.billing.models.credit_card import CreditCard
 from app.blueprints.billing.models.subscription import Subscription
-from app.blueprints.billing.models.invoice import Invoice
-from app.blueprints.user.models.domain import Domain
-from app.blueprints.base.models.feedback import Feedback
 from app.extensions import db
 
 
 class User(UserMixin, ResourceMixin, db.Model):
     ROLE = OrderedDict([
         ('admin', 'Admin'),  # for those who run Recurrify
-        ('creator', 'Creator'),  # for site owners
+        ('owner', 'Owner'),  # for store owners
         ('member', 'Member')  # for members
     ])
 
@@ -45,14 +42,16 @@ class User(UserMixin, ResourceMixin, db.Model):
     username = db.Column(db.String(24), unique=True, index=True)
     email = db.Column(db.String(255), unique=True, index=True, nullable=False,
                       server_default='')
-    domain = db.Column(db.String(255), unique=False, index=True, nullable=True,
-                      server_default='')
-    domain_id = db.Column(db.BigInteger, unique=False, index=True, nullable=True)
     password = db.Column(db.String(128), nullable=False, server_default='')
 
     # Billing.
     name = db.Column(db.String(128), index=True)
     payment_id = db.Column(db.String(128), index=True)
+    address_street = db.Column(db.String(255), unique=False, index=True, nullable=True, server_default='')
+    address_city = db.Column(db.String(255), unique=False, index=True, nullable=True, server_default='')
+    address_state = db.Column(db.String(255), unique=False, index=True, nullable=True, server_default='')
+    address_country = db.Column(db.String(255), unique=False, index=True, nullable=True, server_default='')
+    address_zip = db.Column(db.String(255), unique=False, index=True, nullable=True, server_default='')
     cancelled_subscription_on = db.Column(AwareDateTime())
     trial = db.Column('trial', db.Boolean(), nullable=False,
                       server_default='1')
@@ -67,8 +66,7 @@ class User(UserMixin, ResourceMixin, db.Model):
         # Call Flask-SQLAlchemy's constructor.
         super(User, self).__init__(**kwargs)
 
-        self.password = User.encrypt_password(kwargs.get('password', ''))\
-
+        self.password = User.encrypt_password(kwargs.get('password', ''))
 
     def as_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
@@ -83,7 +81,7 @@ class User(UserMixin, ResourceMixin, db.Model):
         :return: User instance
         """
         return User.query.filter(
-          (User.email == identity) | (User.username == identity)).first()
+            (User.email == identity) | (User.username == identity)).first()
 
     @classmethod
     def encrypt_password(cls, plaintext_password):

@@ -2,8 +2,8 @@ import logging
 import pytz
 from logging.handlers import SMTPHandler
 import os
+import uuid
 import json
-from flask_sslify import SSLify
 import stripe
 import datetime
 import random
@@ -17,16 +17,18 @@ from app.blueprints.admin import admin
 from app.blueprints.page import page
 from app.blueprints.contact import contact
 from app.blueprints.user import user
+from app.blueprints.shopify import shopify_bp
 from app.blueprints.base import base
 from app.blueprints.api import api
 from app.blueprints.api.functions import deserialize_token
 from app.blueprints.billing import billing
 from app.blueprints.user.models.user import User
 from app.blueprints.errors import errors
-from app.blueprints.page.date import get_year_date_string, get_datetime_from_string, get_dt_string, is_date, format_datetime, format_datetime_string
+from app.blueprints.page.date import get_year_date_string, get_datetime_from_string, get_dt_string, is_date, \
+    format_datetime, format_datetime_string
 from app.blueprints.billing.template_processors import (
-  format_currency,
-  current_year
+    format_currency,
+    current_year
 )
 from app.extensions import (
     debug_toolbar,
@@ -36,10 +38,7 @@ from app.extensions import (
     login_manager,
     cache,
     cors,
-    # sslify,
-    # talisman
 )
-
 
 CELERY_TASK_LIST = [
     'app.blueprints.base.tasks',
@@ -81,19 +80,25 @@ def create_app(settings_override=None):
     :param settings_override: Override settings
     :return: Flask app
     """
-    app = Flask(__name__, instance_relative_config=True, subdomain_matching=True)
+    app = Flask(__name__, instance_relative_config=True)
 
     app.config.from_object('config.settings')
     app.config.from_pyfile('settings.py', silent=True)
 
-    if os.environ.get('PRODUCTION') == 'Development':
+    # Setting app server name and cookie domain
+    if os.environ.get('PRODUCTION') == 'true':
         # Set the app server name
-        app.config['SERVER_NAME'] = 'localhost:5000'
-        app.config['REMEMBER_COOKIE_DOMAIN'] = '.localhost:5000'
-    # else:
+        app.config['SERVER_NAME'] = 'recurrify.io'
+        app.config['REMEMBER_COOKIE_DOMAIN'] = '.recurrify.io'
+    else:
         # Set the app server name
-        # app.config['SERVER_NAME'] = 'recurrify.io'
-        # app.config['REMEMBER_COOKIE_DOMAIN'] = '.recurrify.io'
+        SERVER_NAME = '29a34d83d7c7.ngrok.io'
+        # SERVER_NAME = 'local.dev'
+        app.config['SERVER_NAME'] = SERVER_NAME
+        app.config['REMEMBER_COOKIE_DOMAIN'] = '.' + SERVER_NAME
+
+        # Disable CSRF in dev
+        app.config['WTF_CSRF_ENABLED'] = False
 
     # Keeps the app from crashing on reload
     app.config['SQLALCHEMY_POOL_RECYCLE'] = 499
@@ -117,6 +122,7 @@ def create_app(settings_override=None):
     app.register_blueprint(page)
     app.register_blueprint(contact)
     app.register_blueprint(user)
+    app.register_blueprint(shopify_bp)
     app.register_blueprint(base)
     app.register_blueprint(api)
     app.register_blueprint(billing)
@@ -138,7 +144,7 @@ def create_app(settings_override=None):
     #     if not request.is_secure and os.environ.get('PRODUCTION') == 'true':
     #         url = request.url.replace("http://", "https://", 1)
     #         code = 301
-    #         return redirect(url, code=code)
+    #         return shopify_redirect(url, code=code)
 
     @app.errorhandler(500)
     def error_502(e):
@@ -177,8 +183,6 @@ def extensions(app):
     login_manager.init_app(app)
     cache.init_app(app, config={'CACHE_TYPE': 'redis'})
     cors(app, support_credentials=True, resources={r"/*": {"origins": "*"}})
-    # talisman(app, content_security_policy=None)
-    sslify = SSLify(app, permanent=True)
 
     return None
 
@@ -203,10 +207,12 @@ def template_processors(app):
     app.jinja_env.filters['site_color_filter'] = site_color_filter
     app.jinja_env.filters['shuffle_filter'] = shuffle_filter
     app.jinja_env.filters['percent_filter'] = percent_filter
-    app.jinja_env.filters['default_profile_image_url'] = default_profile_image_url
     app.jinja_env.filters['any_votes_filter'] = any_votes_filter
     app.jinja_env.filters['initial_filter'] = initial_filter
     app.jinja_env.filters['deserialize_private_key'] = deserialize_private_key
+    app.jinja_env.filters['any_attribute_filter'] = any_attribute_filter
+    app.jinja_env.filters['exists_filter'] = exists_filter
+    app.jinja_env.filters['contains_filter'] = contains_filter
     app.jinja_env.globals.update(current_year=current_year)
 
     return app.jinja_env
@@ -227,7 +233,7 @@ def authentication(app, user_model):
     def load_user(uid):
         return user_model.query.get(uid)
 
-    #@login_manager.token_loader
+    # @login_manager.token_loader
     def load_token(token):
         duration = app.config['REMEMBER_COOKIE_DURATION'].total_seconds()
         max = 999999999999
@@ -345,7 +351,7 @@ def list_filter(arg):
 
 def dict_filter(obj):
     return {c.key: getattr(obj, c.key) for c in inspect(obj).mapper.column_attrs}
-    #return [x.as_dict() for x in l]
+    # return [x.as_dict() for x in l]
 
 
 def today_filter(arg):
@@ -364,7 +370,7 @@ def site_version_filter(arg):
 
 def site_url_filter(arg):
     from flask import current_app
-    return current_app.config.get('SERVER_NAME') # 'recurrify.io'
+    return current_app.config.get('SERVER_NAME')  # 'recurrify.io'
 
 
 def site_color_filter(arg):
@@ -416,8 +422,28 @@ def initial_filter(arg):
         return arg[0].upper()
 
 
-def default_profile_image_url(arg):
-    markup = 'https://storage.googleapis.com/indie-hackers.appspot.com/avatars/soVlU13BlpgOX7DVWwfJAy67QA43'
-    offerd = 'https://scontent.ftpa1-2.fna.fbcdn.net/v/t1.0-9/23471937_10155779109118398_6528989144266130489_n.jpg?_nc_cat=104&_nc_sid=09cbfe&_nc_ohc=fMD4100xS9wAX8vx9MW&_nc_ht=scontent.ftpa1-2.fna&oh=dc95db0c4dbf170940ac87c45678ccb9&oe=5F09350D'
+def any_attribute_filter(arg, k=None, search=None):
+    if search is None:
+        if any(k in item for item in arg):
+            return True
+        return False
 
-    return None
+    if any(item[k] == search for item in arg):
+        return True
+    return False
+
+
+def exists_filter(arg, k):
+    if str(k) in arg:
+        return True
+
+    return False
+
+
+def contains_filter(arg, search):
+    return_list = list()
+    for k, v in arg.items():
+        if search in k and v is not None:
+            return_list.append({k: v.title()})
+
+    return return_list

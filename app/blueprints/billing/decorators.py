@@ -7,10 +7,11 @@ from flask_login import current_user
 
 def subscription_required(f):
     """
-    Ensure a user is subscribed, if not redirect them to the pricing table.
+    Ensure a user is subscribed, if not shopify_redirect them to the pricing table.
 
     :return: Function
     """
+
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not current_user.customer:
@@ -29,6 +30,7 @@ def handle_stripe_exceptions(f):
     :type f: Function
     :return: Function
     """
+
     @wraps(f)
     def decorated_function(*args, **kwargs):
         try:

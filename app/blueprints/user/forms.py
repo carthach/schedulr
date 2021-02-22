@@ -1,7 +1,7 @@
 from flask_wtf import Form
 from wtforms import HiddenField, StringField, PasswordField
 from wtforms.validators import DataRequired, Length, Optional, Regexp, EqualTo
-from wtforms_components import EmailField, Email
+from wtforms_components import EmailField, Email, read_only
 from wtforms_alchemy import Unique
 
 from lib.util_wtforms import ModelForm
@@ -18,13 +18,18 @@ class LoginForm(Form):
     # remember = BooleanField('Stay signed in')
 
 
-class LoginFormAnon(Form):
+class LoginFormExistingStore(Form):
     next = HiddenField()
-    identity = StringField('Username or email',
+    url = StringField('Store URL')
+    identity = StringField('Email',
                            [DataRequired(), Length(3, 254)])
-    domain = StringField('Domain (optional)')
-    password = PasswordField('Password', [DataRequired(), Length(8, 128)])
-    # remember = BooleanField('Stay signed in')
+
+    password = PasswordField('Enter your password', [DataRequired(), Length(8, 128)])
+
+    def __init__(self, *args, **kwargs):
+        super(LoginFormExistingStore, self).__init__(*args, **kwargs)
+        read_only(self.url)
+        read_only(self.identity)
 
 
 class BeginPasswordResetForm(Form):
@@ -50,14 +55,16 @@ class SignupForm(ModelForm):
         Unique(User.email, get_session=lambda: db.session, message='This email is already in use. Login instead?')
     ])
 
-    password = PasswordField('Password', [DataRequired(), Length(8, 128)])
+    password = PasswordField('Create a password', [DataRequired(), Length(8, 128)])
     # confirm = PasswordField("Repeat Password", [DataRequired(), EqualTo("password", message="Passwords don't match!"), Length(8, 128)])
 
 
-class SignupFormAnon(ModelForm):
-    name = StringField(validators=[
-        DataRequired()
-    ])
+class SignupFormSourceStore(ModelForm):
+    # name = StringField(validators=[
+    #     DataRequired()
+    # ])
+
+    url = StringField('Store URL')
 
     email = EmailField(validators=[
         DataRequired(),
@@ -65,17 +72,27 @@ class SignupFormAnon(ModelForm):
         Unique(User.email, get_session=lambda: db.session, message='This email is already in use. Login instead?')
     ])
 
-    company = StringField(validators=[
-        DataRequired()
-    ])
+    password = PasswordField('Create a password', [DataRequired(), Length(8, 128)])
 
-    domain = StringField(validators=[
+    def __init__(self, *args, **kwargs):
+        super(SignupFormSourceStore, self).__init__(*args, **kwargs)
+        read_only(self.url)
+        # read_only(self.email)
+
+
+class SignupFormDestinationStore(ModelForm):
+    url = StringField('Store URL')
+
+    email = EmailField(validators=[
         DataRequired(),
-        Regexp('^[A-Za-z]+$', message='Only letters are allowed for domain names.'),
+        Email()
     ])
 
-    password = PasswordField('Password', [DataRequired(), Length(8, 128)])
-    # confirm = PasswordField("Repeat Password", [DataRequired(), EqualTo("password", message="Passwords don't match!"), Length(8, 128)])
+    password = PasswordField('Create a password', [DataRequired(), Length(8, 128)])
+
+    def __init__(self, *args, **kwargs):
+        super(SignupFormDestinationStore, self).__init__(*args, **kwargs)
+        read_only(self.url)
 
 
 class WelcomeForm(ModelForm):

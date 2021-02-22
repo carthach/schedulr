@@ -1,20 +1,10 @@
 import click
-import random
-from cli.commands.data import (
-    statuses,
-    generate_comments,
-    generate_feedback
-)
 from sqlalchemy_utils import database_exists, create_database
 from app.app import create_app
 from app.extensions import db
-from app.blueprints.base.functions import generate_id, generate_name, generate_private_key
 from app.blueprints.user.models.user import User
-from app.blueprints.user.models.domain import Domain
-from app.blueprints.base.models.status import Status
-from app.blueprints.base.models.feedback import Feedback
-from app.blueprints.base.models.vote import Vote
-from app.blueprints.base.models.comment import Comment
+from app.blueprints.shopify.models.plan import Plan
+from app.blueprints.shopify.models.product import SyncedProduct
 
 # Create an app context for the database connection.
 app = create_app()
@@ -66,156 +56,68 @@ def seed_users():
         'name': 'Admin'
     }
 
-    feedback = {
-        'role': 'creator',
-        'email': app.config['SEED_MEMBER_EMAIL'],
-        'username': app.config['SEED_MEMBER_USERNAME'],
+    owner = {
+        'role': 'owner',
+        'email': app.config['SEED_OWNER_EMAIL'],
+        'username': app.config['SEED_OWNER_USERNAME'],
         'password': app.config['SEED_ADMIN_PASSWORD'],
-        'domain': 'feedback',
-        'name': 'Ricky'
+        'name': 'Ricky Charpentier'
     }
 
-    demo = {
-        'role': 'creator',
-        'email': 'demo@recurrify.io',
-        'username': 'demo',
-        'password': app.config['SEED_ADMIN_PASSWORD'],
-        'domain': 'demo',
-        'name': 'Demo User'
-    }
-
-    User(**feedback).save()
-    User(**demo).save()
+    # User(**owner).save()
 
     return User(**admin).save()
 
 
 @click.command()
-def seed_status():
-    for status in statuses():
-        params = {
-            'status_id': generate_id(Status),
-            'name': status['name'],
-            'color': status['color']
-        }
+def seed_plans():
+    """
+    Seed the database with plans.
 
-        Status(**params).save()
+    :return: Plan instance
+    """
 
-    return
-
-
-@click.command()
-def seed_domains():
-    from app.blueprints.base.encryption import encrypt_string
-    d = User.query.filter(User.domain == 'demo').scalar()
-    d_id = generate_id(Domain, 8)
-    demo = {
-        'domain_id': d_id,
-        'name': 'demo',
-        'company': 'Demo',
-        'admin_email': d.email,
-        'user_id': d.id,
-        'private_key': encrypt_string(generate_private_key())
+    hobby = {
+        'title': 'Hobby',
+        'tag': 'hobby',
+        'limit': 100,
+        'price': 19
     }
 
-    u = User.query.filter(User.domain == 'feedback').scalar()
-    u_id = generate_id(Domain, 8)
-    feedback = {
-        'domain_id': u_id,
-        'name': 'feedback',
-        'company': 'Recurrify',
-        'admin_email': u.email,
-        'user_id': u.id,
-        'private_key': encrypt_string(generate_private_key())
+    startup = {
+        'title': 'Startup',
+        'tag': 'startup',
+        'limit': 500,
+        'price': 39
     }
 
-    Domain(**demo).save()
-    d.domain_id = d_id
-    d.save()
+    business = {
+        'title': 'Business',
+        'tag': 'business',
+        'limit': 1000,
+        'price': 69
+    }
 
-    Domain(**feedback).save()
-    u.domain_id = u_id
-    u.save()
+    enterprise = {
+        'title': 'Enterprise',
+        'tag': 'enterprise',
+        'limit': 5000,
+        'price': 129
+    }
 
+    unlimited = {
+        'title': 'Unlimited',
+        'tag': 'unlimited',
+        'limit': 999999,
+        'price': 199
+    }
 
-@click.command()
-def seed_feedback():
+    Plan(**hobby).save()
+    Plan(**startup).save()
+    Plan(**business).save()
+    Plan(**enterprise).save()
 
-    s = list(Status.query.all())
-    feedback = generate_feedback()
-
-    d = Domain.query.filter(Domain.name == 'demo').scalar()
-    demo_user = User.query.filter(User.username == 'demo').scalar()
-
-    # w = Domain.query.filter(Domain.name == 'recurrify').scalar()
-    # recurrify_user = User.query.filter(User.username == 'ricky').scalar()
-
-    for x in range(1, 31):
-        status = random.choice(s)
-        f = random.choice(feedback)
-        params = {
-            'user_id': demo_user.id,
-            'feedback_id': generate_id(Feedback),
-            'title': f['title'],
-            'email': demo_user.email,
-            'username': demo_user.username,
-            'fullname': generate_name(),
-            'description': f['description'],
-            'votes': random.randint(10, 1000),
-            # 'comments': random.randint(1, 500),
-            'status_id': status.status_id,
-            'status': status.name,
-            'domain': d.name,
-            'domain_id': d.domain_id
-        }
-
-        Feedback(**params).save()
-
-    # for x in range(1, 11):
-    #     status = random.choice(s)
-    #     params = {
-    #         'user_id': 1,
-    #         'feedback_id': generate_id(Feedback),
-    #         'title': random.choice(titles()),
-    #         'email': recurrify_user.email,
-    #         'username': recurrify_user.username,
-    #         'fullname': generate_name(),
-    #         'description': random.choice(descriptions()),
-    #         'votes': random.randint(10, 1000),
-    #         'comments': random.randint(1, 500),
-    #         'status_id': status.status_id,
-    #         'status': status.name,
-    #         'domain': w.name,
-    #         'domain_id': w.domain_id
-    #     }
-    #
-    #     Feedback(**params).save()
-
-    return
-
-
-@click.command()
-def seed_comments():
-    d = Domain.query.filter(Domain.name == 'demo').scalar()
-    # demo_user = User.query.filter(User.username == 'demo').scalar()
-    feedback = Feedback.query.order_by(Feedback.created_on.desc()).limit(10).all()
-    comments = generate_comments()
-
-    for f in feedback:
-        for x in range(random.randint(1, 21)):
-            c = Comment()
-            # c.user_id = demo_user.id
-            c.comment_id = generate_id(Comment)
-            c.fullname = generate_name()
-            c.comment = random.choice(comments)
-            c.feedback_id = f.feedback_id
-            c.domain_id = d.domain_id
-            c.save()
-
-            f.comments += 1
-        f.save()
-
-    return
+    return Plan(**unlimited).save()
 
 
 @click.command()
@@ -231,10 +133,7 @@ def reset(ctx, with_testdb):
     """
     ctx.invoke(init, with_testdb=with_testdb)
     ctx.invoke(seed_users)
-    ctx.invoke(seed_domains)
-    ctx.invoke(seed_status)
-    ctx.invoke(seed_feedback)
-    ctx.invoke(seed_comments)
+    ctx.invoke(seed_plans)
 
     return None
 
@@ -255,4 +154,5 @@ def backup():
 
 cli.add_command(init)
 cli.add_command(seed_users)
+cli.add_command(seed_plans)
 cli.add_command(reset)

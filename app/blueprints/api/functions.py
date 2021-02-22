@@ -1,14 +1,10 @@
 import jwt
-import requests
 import os
 import base64
-from flask import current_app
-from simplecrypt import encrypt, decrypt
 from cryptography.fernet import Fernet
-from requests.exceptions import ConnectionError
-
 
 # Tokens ###########################################
+
 '''
 Create a token for the user using JWT
 '''
@@ -67,24 +63,4 @@ def decrypt_string(b):
     f = Fernet(key)
     plaintext = f.decrypt(b)
     return plaintext
-
-
-def site_exists(domain):
-    from app.blueprints.base.functions import print_traceback
-    url = 'https://' + domain + '.recurrify.io/dashboard'
-    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36', }
-
-    try:
-        r = requests.post(url, headers=headers, verify=False)
-        print(r.status_code)
-        if r.status_code < 400:
-            return True
-    except ConnectionError as c:
-        print_traceback(c)
-        return False
-    except Exception as e:
-        print_traceback(e)
-        return False
-    else:
-        return True
 
