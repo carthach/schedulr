@@ -9,7 +9,6 @@ from sqlalchemy import exists, and_
 from app.blueprints.shopify.models.product import SyncedProduct, Product
 from app.blueprints.shopify.models.shop import Shop
 from app.blueprints.shopify.models.sync import Sync
-from app.blueprints.shopify.models.plan import Plan
 
 
 def sync_all_products(s):

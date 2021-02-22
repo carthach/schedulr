@@ -30,7 +30,7 @@
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='table.css') }}">
 
     <!-- Tailwind CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tailwindcss/ui@latest/dist/tailwind-ui.min.css">
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='tailwindcss/tailwind.css') }}">
 
     <!-- END Stylesheets -->
 </head>
@@ -122,28 +122,16 @@
                 </div>
             </div>
 
-            <h1 class="mb-2 text-xl font-w700 text-gray-900">Products</h1>
-            {% if products|length > 0 %}
-                <div class="flex flex-col mb-5">
-                    <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-                        <div class="py-1 align-middle inline-block min-w-full sm:px-6 lg:px-8">
-                            <div class="shadow border-gray-200 sm:rounded-lg">
-                                {% include '/user/includes/product_table.html' ignore missing %}
-                            </div>
-                            {% include '/user/includes/pagination.html' ignore missing %}
+            <h1 class="mb-2 text-xl font-w700 text-gray-900">Calendar</h1>
+            <div class="flex flex-col mb-5">
+                <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                    <div class="py-1 align-middle inline-block min-w-full sm:px-6 lg:px-8">
+                        <div class="shadow border-gray-200 sm:rounded-lg">
+                            {% include '/user/includes/calendar.html' ignore missing %}
                         </div>
                     </div>
                 </div>
-            {% else %}
-                <div class="py-4 grid grid-cols-1 gap-6 sm:grid-cols-1 lg:grid-cols-1 col-span-4">
-                    <div class="rounded-lg h-96 text-center" style="display:flex; align-items:center;">
-                                  <span class="inline-flex text-lg leading-5 font-medium text-gray-500"
-                                        style="float:none;margin:0 auto;">
-                                      There are no products.
-                                  </span>
-                    </div>
-                </div>
-            {% endif %}
+            </div>
             <!-- /End replace -->
         </div>
     </main>

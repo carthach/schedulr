@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Evo Calendar</title>
+
+    <meta charset="utf-8">
+    <meta name="description" content="Simple Modern-looking Event Calendar Plugin">
+    <meta name="keywords" content="jQuery, Plugin, Event, Calendar, EvoCalendar">
+    <meta name="author" content="Edlyn Villegas">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <link rel="icon" href="../../../../../static/calendars/evo/favicon.png">
+
+    <!-- CSS -->
+    <link rel="stylesheet" type="text/css" href="../../../../../static/calendars/evo/evo-calendar/css/evo-calendar.min.css">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap" rel="stylesheet">
+
+</head>
+<body>
+    <div id="calendar"></div>
+
+    <!-- jQuery -->
+    <script src="{{ url_for('static', filename='oneui/assets/js/core/jquery.min.js') }}"></script>
+{#    <script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>#}
+{#    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>#}
+
+    <script src="../../../../../static/calendars/evo/evo-calendar/js/evo-calendar.min.js"></script>
+    <script src="../../../../../static/calendars/evo/evo-calendar/js/evo-calendar.js"></script>
+
+    <!-- Initialize calendar -->
+    <script>
+        $(document).ready(function() {
+            $('#calendar').evoCalendar({
+            })
+        })
+    </script>
+</body>
+</html>

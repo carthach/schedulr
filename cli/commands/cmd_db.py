@@ -2,9 +2,12 @@ import click
 from sqlalchemy_utils import database_exists, create_database
 from app.app import create_app
 from app.extensions import db
+from app.blueprints.base.functions import generate_id
 from app.blueprints.user.models.user import User
 from app.blueprints.shopify.models.plan import Plan
-from app.blueprints.shopify.models.product import SyncedProduct
+from app.blueprints.calendar.models.event import Event
+from app.blueprints.calendar.models.calendar import Calendar
+from app.blueprints.calendar.models.event_type import EventType
 
 # Create an app context for the database connection.
 app = create_app()
@@ -64,9 +67,58 @@ def seed_users():
         'name': 'Ricky Charpentier'
     }
 
-    # User(**owner).save()
+    User(**owner).save()
 
     return User(**admin).save()
+
+
+@click.command()
+def seed_events():
+    """
+    Seed the database with an initial user.
+
+    :return: User instance
+    """
+
+    u = User.query.filter(User.email == app.config['SEED_OWNER_EMAIL']).scalar()
+
+    calendar = {
+        'user_id': u.id
+    }
+
+    c = Calendar(**calendar)
+    c.save()
+
+    event_type_30 = {
+        'user_id': u.id,
+        'calendar_id': c.calendar_id,
+        'title': '30 minute meeting',
+        'description': 'A meeting that will only last 30 minutes',
+        'duration_minutes': 30
+    }
+
+    event_type_60 = {
+        'user_id': u.id,
+        'calendar_id': c.calendar_id,
+        'title': '60 minute meeting',
+        'description': 'A meeting that will last an hour',
+        'duration_minutes': 60,
+        'active': False
+    }
+
+    e_30 = EventType(**event_type_30)
+    e_60 = EventType(**event_type_60)
+
+    e_30.save()
+    e_60.save()
+
+    event = {
+        'user_id': u.id,
+        'calendar_id': c.calendar_id,
+        'event_type_id': e_30.event_type_id
+    }
+
+    return Event(**event).save()
 
 
 @click.command()
@@ -134,6 +186,7 @@ def reset(ctx, with_testdb):
     ctx.invoke(init, with_testdb=with_testdb)
     ctx.invoke(seed_users)
     ctx.invoke(seed_plans)
+    ctx.invoke(seed_events)
 
     return None
 
@@ -155,4 +208,5 @@ def backup():
 cli.add_command(init)
 cli.add_command(seed_users)
 cli.add_command(seed_plans)
+cli.add_command(seed_events)
 cli.add_command(reset)

@@ -30,14 +30,14 @@
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='table.css') }}">
 
     <!-- Tailwind CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tailwindcss/ui@latest/dist/tailwind-ui.min.css">
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='tailwindcss/tailwind.css') }}">
 
     <!-- END Stylesheets -->
 </head>
 <body>
 {#{% include '/user/includes/mobile.html' ignore missing %}#}
 <div class="bg-gray-100" style="height:100vh;overflow-y:hidden;">
-    {% with page='stores' %}{% include '/user/includes/main_header.html' ignore missing %}{% endwith %}
+    {% with page='events' %}{% include '/user/includes/main_header.html' ignore missing %}{% endwith %}
     <div class="relative z-10 flex-shrink-0 flex h-16 bg-white shadow">
         <button class="px-4 border-r border-gray-200 text-gray-500 focus:outline-none focus:bg-gray-100 focus:text-gray-600 md:hidden"
                 aria-label="Open sidebar" onclick="OpenSidebar()">
