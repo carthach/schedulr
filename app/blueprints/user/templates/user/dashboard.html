@@ -123,12 +123,21 @@
                     </div>
                 </div>
 
-                <div class="flex flex-col mb-5 col-span-3">
+                <div class="flex flex-col mb-5 col-span-2">
                     <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                         <div class="py-1 align-middle inline-block min-w-full sm:px-6 lg:px-8">
                             <div>
                                 <div id="picker"></div>
                                 {% include '/user/includes/picker.html' ignore missing %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col mb-5 col-span-1">
+                    <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                        <div class="py-1 align-middle inline-block min-w-full sm:px-6 lg:px-8">
+                            <div id="selected-dates">
                             </div>
                         </div>
                     </div>
@@ -221,10 +230,21 @@
             availability: myHours,
             isMultiple: false,
             startDate: d,
-            weekdays: ['Sun','Mon','Tue','Wed','Thurs','Fri','Sat'],
+            weekdays: ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
             onClickNavigator:function(ev, instance) {
                 instance.setAvailability(myHours);
-            }
+            },
+            onClick: function(ev, data) {
+
+                // This is handling an error of data not populating.
+                // TODO: Look into this.
+                let x = instance;
+                let html = '';
+                for (var i = 0; i < data.length; i++){
+                    html += data[i] + '\n';
+                }
+                document.getElementById('selected-dates').innerText = html;
+            },
         });
     }
 </script>
@@ -235,26 +255,30 @@
       ['1:00', '2:00', '3:00', '4:00', '5:00']
     ];
 
-    function addDays(date, days) {
-        var result = new Date(date);
-        result.setDate(result.getDate() + days);
-        return result;
-    }
-
     let d = new Date();
-    let n = new Date(2021,2, 24)
-    //let n = addDays(d, 3);
 
     $('#picker').markyourcalendar({
         availability: myHours,
         isMultiple: false,
         startDate: d,
-        selectedDates: [d, n],
         weekdays: ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
         onClickNavigator:function(ev, instance) {
             instance.setAvailability(myHours);
-        }
+        },
+        onClick: function(ev, data) {
+            let html = '';
+            for (var i = 0; i < data.length; i++){
+                html += data[i] + '\n';
+            }
+            document.getElementById('selected-dates').innerText = html;
+        },
     });
+
+    function addDays(date, days) {
+        var result = new Date(date);
+        result.setDate(result.getDate() + days);
+        return result;
+    }
 </script>
 <script>
     var body = document.getElementsByTagName("body")[0];

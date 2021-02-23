@@ -2,7 +2,7 @@
 #myc-container {
     /* Change to 100% to fill entire calendar */
     width:60%;
-    min-width:400px;
+    min-width:300px;
     /*width: inherit*/
 }
 
@@ -19,7 +19,7 @@
     text-align: center;
     text-transform: capitalize;
     vertical-align: top;
-    width: 68%;
+    width: 65%;
 }
 
 #myc-prev-week-container {
@@ -33,9 +33,9 @@
 }
 
 #myc-prev-week {
-    border: 1px solid #e0e0e0;
+    border: 1px solid #B9B9B9;
     border-radius: 80px;
-    color: #e0e0e0;
+    color: #B9B9B9;
     cursor: pointer;
     float: left;
     font-size: 1.6em;
@@ -46,9 +46,9 @@
 }
 
 #myc-next-week {
-    border: 1px solid #e0e0e0;
+    border: 1px solid #B9B9B9;
     border-radius: 80px;
-    color: #e0e0e0;
+    color: #B9B9B9;
     cursor: pointer;
     float: right;
     font-size: 1.6em;
@@ -133,7 +133,7 @@
 }
 
 .myc-available-time.selected, .myc-available-time:hover {
-    background-color: #222;
+    background-color: #1C7096;
 }
 
 .myc-date-display {
