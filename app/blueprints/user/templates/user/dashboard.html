@@ -111,22 +111,24 @@
             </div>
 
             <h1 class="mb-2 text-xl font-w700 text-gray-900"></h1>
-            <div class="grid md:grid-cols-3 sm:gap-4 lg:gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-5">
-                <div class="flex flex-col mb-5 col-span-2">
+            <div class="grid md:grid-cols-7 sm:gap-4 lg:gap-6 sm:grid-cols-2 lg:grid-cols-7 mb-5">
+                <div class="flex flex-col mb-5 col-span-4">
                     <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                         <div class="py-1 align-middle inline-block min-w-full sm:px-6 lg:px-8">
                             <div style="margin:0 auto; float:none;width:500px;">
+                                <div id="calendar"></div>
                                 {% include '/user/includes/calendar.html' ignore missing %}
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="flex flex-col mb-5 col-span-1">
+                <div class="flex flex-col mb-5 col-span-3">
                     <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                         <div class="py-1 align-middle inline-block min-w-full sm:px-6 lg:px-8">
-                            <div style="margin:0 auto;float:none;width:500px;">
-
+                            <div>
+                                <div id="picker"></div>
+                                {% include '/user/includes/picker.html' ignore missing %}
                             </div>
                         </div>
                     </div>
@@ -138,6 +140,9 @@
 </div>
 <!-- jQuery -->
 <script src="{{ url_for('static', filename='oneui/assets/js/core/jquery.min.js') }}"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="{{ url_for('static', filename='calendars/availability/js/mark-your-calendar.js') }}"></script>
 
 <script>
     function ShowDropdown(id) {
@@ -188,6 +193,68 @@
             document.getElementById('search-results').style.display = 'none';
         }
     }
+</script>
+
+<!-- Pickers -->
+<!-- FlatPickr -->
+<script>
+    $("#calendar").flatpickr({
+        inline: true,
+        disable: [
+            function (date) {
+                return (date < new Date().addDays(-1));
+            }
+        ],
+        onChange: function(selectedDates, dateStr, instance) {
+            UpdatePicker(selectedDates);
+        }
+    });
+
+    function UpdatePicker(selectedDates){
+        const myHours = [
+          ['1:00', '2:00', '3:00', '4:00', '5:00']
+        ];
+
+        d = new Date(selectedDates);
+
+        $('#picker').markyourcalendar({
+            availability: myHours,
+            isMultiple: false,
+            startDate: d,
+            weekdays: ['Sun','Mon','Tue','Wed','Thurs','Fri','Sat'],
+            onClickNavigator:function(ev, instance) {
+                instance.setAvailability(myHours);
+            }
+        });
+    }
+</script>
+
+<!-- Availability -->
+<script>
+    const myHours = [
+      ['1:00', '2:00', '3:00', '4:00', '5:00']
+    ];
+
+    function addDays(date, days) {
+        var result = new Date(date);
+        result.setDate(result.getDate() + days);
+        return result;
+    }
+
+    let d = new Date();
+    let n = new Date(2021,2, 24)
+    //let n = addDays(d, 3);
+
+    $('#picker').markyourcalendar({
+        availability: myHours,
+        isMultiple: false,
+        startDate: d,
+        selectedDates: [d, n],
+        weekdays: ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
+        onClickNavigator:function(ev, instance) {
+            instance.setAvailability(myHours);
+        }
+    });
 </script>
 <script>
     var body = document.getElementsByTagName("body")[0];

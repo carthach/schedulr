@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap" rel="stylesheet">
+
+    <!--<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">-->
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='calendars/availability/css/mark-your-calendar.css') }}">
+
+</head>
+<body>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    {#<script src="{{ url_for('static', filename='calendars/availability/js/mark-your-calendar.js') }}"></script>#}
+    {#<script src="{{ url_for('static', filename='calendars/calendars.js') }}"></script>#}
+
+    {#<script>
+        const myHours = [
+          ['1:00', '2:00', '3:00', '4:00', '5:00']
+        ];
+
+        function addDays(date, days) {
+            var result = new Date(date);
+            result.setDate(result.getDate() + days);
+            return result;
+        }
+
+        let d = new Date();
+        let n = addDays(d, 3);
+
+        $('#picker').markyourcalendar({
+            availability: myHours,
+            isMultiple: false,
+            startDate: d,
+            onClickNavigator:function(ev, instance) {
+                instance.setAvailability(myHours);
+            }
+        });
+    </script>#}
+</body>
+</html>

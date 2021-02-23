@@ -11,13 +11,38 @@
 
 </head>
 <body>
-    <div id="calendar"></div>
+    {#<div id="calendar"></div>#}
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    {#<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>#}
+    {#<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>#}
 
-    <script>
-        $("#calendar").flatpickr({ inline: true });
-    </script>
+    {#<script src="{{ url_for('static', filename='calendars/availability/js/mark-your-calendar.js') }}"></script>#}
+{#    <script src="{{ url_for('static', filename='calendars/calendars.js') }}"></script>#}
+
+    {#<script>
+        $("#calendar").flatpickr({
+            inline: true,
+            onChange: function(selectedDates, dateStr, instance) {
+                UpdatePicker(selectedDates);
+            }
+        });
+
+        function UpdatePicker(selectedDates){
+            const myHours = [
+              ['1:00', '2:00', '3:00', '4:00', '5:00']
+            ];
+
+            $('#picker').innerHTML = '';
+
+            $('#picker').markyourcalendar({
+                availability: myHours,
+                isMultiple: false,
+                startDate: selectedDates,
+                onClickNavigator:function(ev, instance) {
+                    instance.setAvailability(myHours);
+                }
+            });
+        }
+    </script>#}
 </body>
 </html>
