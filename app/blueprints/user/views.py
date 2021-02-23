@@ -309,6 +309,7 @@ def events(event_id=None):
         return render_template('user/event_type.html', current_user=current_user, event=event)
     else:
         event_types = EventType.query.filter(EventType.user_id == current_user.id).all()
+        event_types.sort(key=lambda x: x.created_on)
         return render_template('user/events.html', current_user=current_user, event_types=event_types)
 
 
