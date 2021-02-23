@@ -27,7 +27,7 @@ from lib.safe_next_url import safe_next_url
 from app.blueprints.user.decorators import anonymous_required
 from app.blueprints.shopify.functions import get_all_products, update_sync, get_product_count, get_product_by_id
 from app.blueprints.user.models.user import User
-from app.blueprints.base.functions import get_pagination
+from app.blueprints.base.functions import get_timezone
 from app.blueprints.calendar.models.event_type import EventType
 from app.blueprints.shopify.models.plan import Plan
 from app.blueprints.user.forms import (
@@ -281,6 +281,7 @@ Pages
 @csrf.exempt
 @cross_origin()
 def dashboard(page=1):
+    tz = get_timezone()
     # shop = Shop.query.filter(Shop.user_id == current_user.id).scalar()
 
     # products = get_all_products(shop)
@@ -296,7 +297,7 @@ def dashboard(page=1):
     # return render_template('user/dashboard.html', current_user=current_user, total=len(products),
     #                        products=pagination, start=page_start, finish=page_finish,
     #                        total_pages=total_pages, page=page, prev=prev_page, next=next_page)
-    return render_template('user/dashboard.html', current_user=current_user)
+    return render_template('user/dashboard.html', current_user=current_user, tz=tz)
 
 
 @user.route('/events/', methods=['GET', 'POST'])

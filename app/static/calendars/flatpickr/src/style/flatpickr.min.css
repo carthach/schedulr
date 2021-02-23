@@ -9,13 +9,14 @@
     animation: none;
     direction: ltr;
     border: 0;
-    font-size: 14px;
+    font-size: 16px;
     line-height: 24px;
     border-radius: 5px;
     position: absolute;
 
     /* Ricky */
-    width:/*307.875*/ 640px;
+    /*width: 307.875*/
+    width: 640px;
     height: 640px;
     -webkit-box-sizing: border-box;
     box-sizing: border-box;
@@ -143,12 +144,15 @@
     /*Ricky*/
     margin-top: 20px;
     margin-bottom: 20px;
+    height: 55px;
 }
 .flatpickr-months .flatpickr-month {
     background: transparent;
     color: rgba(0, 0, 0, 0.9);
     fill: rgba(0, 0, 0, 0.9);
-    height: 34px;
+    /* Ricky */
+    /* height: 34px; */
+    height: 50px;
     line-height: 1;
     text-align: center;
     position: relative;
@@ -304,9 +308,11 @@
     position: absolute;
     width: 75%;
     left: 12.5%;
-    padding: 7.48px 0 0 0;
+    padding: 7.48px 0 7.48px 0;
     line-height: 1;
-    height: 34px;
+    /* Ricky */
+    /* height: 34px; */
+    height: 50px;
     display: inline-block;
     text-align: center;
     -webkit-transform: translate3d(0, 0, 0);
@@ -513,9 +519,9 @@ span.flatpickr-weekday {
     /*max-width: 39px;*/
     /*height: 39px;
     line-height: 39px;*/
-    max-width: 90px;
-    height: 90px;
-    line-height: 90px;
+    max-width: 82px;
+    height: 82px;
+    line-height: 82px;
     margin: 0;
     display: inline-block;
     position: relative;

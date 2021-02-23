@@ -118,6 +118,7 @@
                             <div style="margin:0 auto; float:none;width:500px;">
                                 <div id="calendar"></div>
                                 {% include '/user/includes/calendar.html' ignore missing %}
+                                {{ tz }}
                             </div>
                         </div>
                     </div>
@@ -208,7 +209,7 @@
 <!-- Availability -->
 <script>
     let myHours = [
-      ['1:00', '2:00', '3:00', '4:00', '5:00']
+      ['1:00', '4:00', '5:00']
     ];
 
     let d = new Date();
@@ -250,33 +251,9 @@
     });
 
     function UpdatePicker(selectedDates){
-        const myHours = [
-          ['1:00', '2:00', '3:00', '4:00', '5:00']
-        ];
-
         d = new Date(selectedDates);
         instance.setStartDate(d);
         render();
-
-        {#$('#picker').markyourcalendar({
-            availability: myHours,
-            isMultiple: false,
-            startDate: d,
-            weekdays: ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
-            onClickNavigator:function(ev, instance) {
-                instance.setAvailability(myHours);
-            },
-            onClick: function(ev, data) {
-                // This is handling an error of data not populating.
-                // TODO: Look into this.
-                let x = instance;
-                let html = '';
-                for (var i = 0; i < data.length; i++){
-                    html += data[i] + '\n';
-                }
-                document.getElementById('selected-dates').innerText = html;
-            },
-        });#}
     }
 
     function render() {

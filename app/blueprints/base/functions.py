@@ -1,4 +1,5 @@
 import string
+import time
 import random
 import pytz
 import names
@@ -115,6 +116,10 @@ def set_inactive(current_user):
     current_user.domain_id = None
     current_user.active = False
     current_user.save()
+
+
+def get_timezone():
+    return time.strftime("%Z", time.gmtime())
 
 
 # Other ###################################################
