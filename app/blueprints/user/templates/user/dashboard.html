@@ -205,8 +205,38 @@
 </script>
 
 <!-- Pickers -->
-<!-- FlatPickr -->
+<!-- Availability -->
 <script>
+    let myHours = [
+      ['1:00', '2:00', '3:00', '4:00', '5:00']
+    ];
+
+    let d = new Date();
+
+    var instance = $('#picker').markyourcalendar({
+        availability: myHours,
+        isMultiple: false,
+        startDate: d,
+        weekdays: ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
+        onClickNavigator:function(ev, instance) {
+             instance.setAvailability(myHours);
+        },
+        onClick: function(ev, data) {
+            let html = '';
+            for (var i = 0; i < data.length; i++){
+                html += data[i] + '\n';
+            }
+            document.getElementById('selected-dates').innerText = html;
+        },
+    });
+
+    function addDays(date, days) {
+        var result = new Date(date);
+        result.setDate(result.getDate() + days);
+        return result;
+    }
+
+    <!-- FlatPickr -->
     $("#calendar").flatpickr({
         inline: true,
         disable: [
@@ -225,8 +255,10 @@
         ];
 
         d = new Date(selectedDates);
+        instance.setStartDate(d);
+        render();
 
-        $('#picker').markyourcalendar({
+        {#$('#picker').markyourcalendar({
             availability: myHours,
             isMultiple: false,
             startDate: d,
@@ -235,7 +267,6 @@
                 instance.setAvailability(myHours);
             },
             onClick: function(ev, data) {
-
                 // This is handling an error of data not populating.
                 // TODO: Look into this.
                 let x = instance;
@@ -245,41 +276,24 @@
                 }
                 document.getElementById('selected-dates').innerText = html;
             },
-        });
+        });#}
+    }
+
+    function render() {
+        var ret = `
+            <div id="myc-container">
+                <div id="myc-nav-container">` + instance.getNavControl() + `</div>
+                <div id="myc-week-container">
+                    <div id="myc-dates-container">` + instance.getDatesHeader() + `</div>
+                    <div id="myc-available-time-container">` + instance.getAvailableTimes() + `</div>
+                </div>
+            </div>
+        `;
+
+        document.getElementById('picker').innerHTML = ret;
     }
 </script>
 
-<!-- Availability -->
-<script>
-    const myHours = [
-      ['1:00', '2:00', '3:00', '4:00', '5:00']
-    ];
-
-    let d = new Date();
-
-    $('#picker').markyourcalendar({
-        availability: myHours,
-        isMultiple: false,
-        startDate: d,
-        weekdays: ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
-        onClickNavigator:function(ev, instance) {
-            instance.setAvailability(myHours);
-        },
-        onClick: function(ev, data) {
-            let html = '';
-            for (var i = 0; i < data.length; i++){
-                html += data[i] + '\n';
-            }
-            document.getElementById('selected-dates').innerText = html;
-        },
-    });
-
-    function addDays(date, days) {
-        var result = new Date(date);
-        result.setDate(result.getDate() + days);
-        return result;
-    }
-</script>
 <script>
     var body = document.getElementsByTagName("body")[0];
     var user_dropdown = document.getElementById('user-dropdown-menu');

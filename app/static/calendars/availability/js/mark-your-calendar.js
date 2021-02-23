@@ -123,6 +123,11 @@
             render();
         }
 
+        this.setStartDate = function(date) {
+            settings.startDate = date;
+            render();
+        }
+
         // clear
         this.clearAvailability = function() {
             settings.availability = [[], [], [], [], [], [], []];
@@ -201,5 +206,6 @@
         };
 
         render();
+        return instance;
     };
 })(jQuery);
