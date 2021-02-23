@@ -73,10 +73,6 @@
                             <div class="full">
                                 <span class="text-lg mb-1 mt-10 text-gray-700" style="font-size: 24px;">Event Types</span><br/>
                             </div>
-
-                        <input type="text" name="email" id="email" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="you@example.com">
-
-
                             <fieldset class="pt-8 w-full">
                                 {% if event_types|length > 0 %}
                                     <ul class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -100,14 +96,14 @@
                                                 <div>
                                                   <div class="-mt-px flex divide-x divide-gray-200">
                                                     <div class="w-0 flex-1 flex">
-                                                      <a id="edit-{{ type_id }}" onclick="UpdateEventType('{{ type_id }}')" class="cursor-pointer relative -mr-px w-0 flex-1 inline-flex items-center justify-center py-4 text-sm text-gray-600 font-medium border border-transparent rounded-bl-lg hover:text-gray-500">
-                                                        <i class="fa fa-pencil"></i>
+                                                      <a id="edit-{{ type_id }}" onclick="UpdateEventType('{{ type_id }}', this)" class="cursor-pointer relative -mr-px w-0 flex-1 inline-flex items-center justify-center py-4 text-md text-indigo-600 font-medium border border-transparent rounded-bl-lg hover:text-indigo-500">
+                                                        <i id="edit-icon-{{ type_id }}" class="fa fa-pencil"></i>
                                                         <span id="edit-text-{{ type_id }}" class="ml-3">Edit</span>
                                                       </a>
                                                     </div>
                                                     <div class="-ml-px w-0 flex-1 flex">
-                                                      <a id="delete-{{ type_id }}" href="#" class="relative w-0 flex-1 inline-flex items-center justify-center py-4 text-sm text-gray-700 font-medium border border-transparent rounded-br-lg hover:text-gray-500">
-                                                        <i class="fa fa-trash-o" style="color:red"></i>
+                                                      <a id="delete-{{ type_id }}" href="#" class="relative w-0 flex-1 inline-flex items-center justify-center py-4 text-md text-indigo-700 font-medium border border-transparent rounded-br-lg hover:text-indigo-500">
+                                                        <i id="delete-icon-{{ type_id }}" class="fa fa-trash-o" style="color:red"></i>
                                                         <span id="delete-text-{{ type_id }}" class="ml-3" style="color:red">Delete</span>
                                                       </a>
                                                     </div>
@@ -168,33 +164,46 @@
         document.getElementById(val.id + '_border').classList.add('border-indigo-500');
     }
 
-    function UpdateEventType(type_id){
-        let block = document.getElementById('item-' + type_id);
+    function UpdateEventType(type_id, el){
+
+        // Get the original block, in case they hit cancel
+        let block = document.createElement('li');
+        block.innerHTML = document.getElementById('item-' + type_id).innerHTML;
+
+        // Get the elements that will change
         let title = document.getElementById('title-' + type_id);
+        let title_text = document.getElementById('title-' + type_id).innerText;
         let description = document.getElementById('description-' + type_id);
+        let description_text = document.getElementById('description-' + type_id).innerText;
         let duration = document.getElementById('duration-minutes-' + type_id);
+        let duration_text = document.getElementById('duration-minutes-' + type_id).innerText;
         let edit_button = document.getElementById('edit-' + type_id);
         let delete_button = document.getElementById('delete-' + type_id);
 
         // Change the edit and delete buttons
         document.getElementById('edit-text-' + type_id).innerText = 'Save';
-        document.getElementById('delete-text-' + type_id).innerText = 'Cancel';
+        document.getElementById('edit-icon-' + type_id).classList.remove('fa-pencil');
 
+        document.getElementById('delete-text-' + type_id).innerText = 'Cancel';
+        document.getElementById('delete-icon-' + type_id).classList.remove('fa-trash-o');
+        delete_button.onclick = function(){ CancelEventTypeUpdate(type_id, block) };
+
+        // Change the elements
         title.innerHTML = '<input type="text" name="first_name" id="first_name"' +
-            ' autocomplete="given-name" class="max-w-lg block w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500' +
+            ' autocomplete="given-name" value="' + title_text + '" class="max-w-lg block w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500' +
             ' sm:max-w-xs sm:text-sm border-gray-300 rounded-md">'
 
-        description.innerHTML = '<div class="mt-1 sm:mt-0 sm:col-span-2"><textarea id="about" name="about" rows="3" ' +
+        description.innerHTML = '<div class="mt-1"><textarea id="about" name="about" rows="3" ' +
             'class="max-w-lg shadow-sm block w-full focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border-gray-300' +
-            ' rounded-md"></textarea></div>'
+            ' rounded-md">' + description_text + '</textarea></div>'
 
-        duration.innerHTML = '<div class="mt-1 sm:mt-0 sm:col-span-2"> <input type="text" name="first_name" id="first_name"' +
-            ' autocomplete="given-name" class="max-w-lg block w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500' +
+        duration.innerHTML = '<div class="mt-1 ml-1 inline-block"> <input type="text" name="first_name" id="first_name"' +
+            ' autocomplete="given-name" size="4" value="' + duration_text + '" class="mr-2 shadow-sm focus:ring-indigo-500 focus:border-indigo-500' +
             ' sm:max-w-xs sm:text-sm border-gray-300 rounded-md"></div>'
     }
 
-    function CancelEventTypeUpdate(type_id){
-
+    function CancelEventTypeUpdate(type_id, block){
+        document.getElementById('item-' + type_id).innerHTML = block.innerHTML;
     }
 
     {#function ActivateSync(sync_id, shop_id, activate, el){
