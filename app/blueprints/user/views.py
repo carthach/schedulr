@@ -306,10 +306,53 @@ def dashboard(page=1):
 def events(event_id=None):
     if event_id is not None:
         event = EventType.query.filter(EventType.event_type_id == event_id).scalar()
-        return render_template('user/events.html', current_user=current_user, event=event)
+        return render_template('user/event_type.html', current_user=current_user, event=event)
     else:
         event_types = EventType.query.filter(EventType.user_id == current_user.id).all()
         return render_template('user/events.html', current_user=current_user, event_types=event_types)
+
+
+@user.route('/create_event/', methods=['GET', 'POST'])
+@csrf.exempt
+@cross_origin()
+def create_event():
+    event = EventType(user_id=current_user.id)
+    if event is not None:
+        return render_template('user/event_type.html', current_user=current_user, event=event)
+    else:
+        return redirect(url_for('user.events'))
+
+
+@user.route('/save_event', methods=['GET', 'POST'])
+@csrf.exempt
+@cross_origin()
+def save_event():
+    if request.method == 'POST':
+        if 'event_id' in request.form and 'event_name' in request.form and 'duration' in request.form and 'description' in request.form:
+            event_id = request.form['event_id']
+            event_name = request.form['event_name']
+            duration = request.form['duration']
+            description = request.form['description']
+
+            # Create a new event type
+            if not db.session.query(exists().where(EventType.event_type_id == event_id)).scalar():
+                data = {
+                    'title': event_name,
+                    'description': description,
+                    'duration_minutes': duration
+                }
+
+                e = EventType(user_id=current_user.id, **data)
+                e.event_type_id = event_id
+                e.save()
+            else:
+                e = EventType.query.filter(EventType.event_type_id == event_id).scalar()
+                if e is not None:
+                    e.title = event_name
+                    e.description = description
+                    e.duration_minutes = duration
+                    e.save()
+    return redirect(url_for('user.events'))
 
 
 @user.route('/start', methods=['GET', 'POST'])

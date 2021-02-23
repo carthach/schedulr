@@ -7,7 +7,7 @@
 <head>
     <meta charset="utf-8">
 
-    <title>Dashboard - {{ 'site_name'|site_name_filter }}</title>
+    <title>Calendar - {{ 'site_name'|site_name_filter }}</title>
 
     <meta name="description" content="Schedulr - Easily schedule meetings">
     <meta name="author" content="pixelcave">
@@ -48,18 +48,6 @@
         <div class="flex-1 px-4 flex justify-between">
             <div class="flex-1 flex">
                 <div class="w-full flex md:ml-0">
-                    <label for="search_field" class="sr-only">Search</label>
-                    <div class="relative w-full text-gray-400 focus-within:text-gray-600">
-                        <div class="absolute inset-y-0 left-0 flex items-center pointer-events-none">
-                            <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" clip-rule="evenodd"
-                                      d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"/>
-                            </svg>
-                        </div>
-                        <input id="search_field"
-                               class="block w-full h-full pl-8 pr-3 py-2 rounded-md text-gray-900 placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 sm:text-sm"
-                               placeholder="Search products" type="search" oninput="SearchProducts(this)"/>
-                    </div>
                 </div>
             </div>
         </div>
@@ -122,12 +110,24 @@
                 </div>
             </div>
 
-            <h1 class="mb-2 text-xl font-w700 text-gray-900">Calendar</h1>
-            <div class="flex flex-col mb-5">
-                <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-                    <div class="py-1 align-middle inline-block min-w-full sm:px-6 lg:px-8">
-                        <div class="shadow border-gray-200 sm:rounded-lg">
-                            {% include '/user/includes/calendar.html' ignore missing %}
+            <h1 class="mb-2 text-xl font-w700 text-gray-900"></h1>
+            <div class="grid md:grid-cols-3 sm:gap-4 lg:gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-5">
+                <div class="flex flex-col mb-5 col-span-2">
+                    <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                        <div class="py-1 align-middle inline-block min-w-full sm:px-6 lg:px-8">
+                            <div style="margin:0 auto; float:none;width:500px;">
+                                {% include '/user/includes/calendar.html' ignore missing %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col mb-5 col-span-1">
+                    <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                        <div class="py-1 align-middle inline-block min-w-full sm:px-6 lg:px-8">
+                            <div style="margin:0 auto;float:none;width:500px;">
+
+                            </div>
                         </div>
                     </div>
                 </div>
