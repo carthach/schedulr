@@ -118,7 +118,7 @@
                                 Custom tag <span style="color:red">*</span>
                               </label>
                               <div class="mt-1 sm:mt-0 sm:col-span-2">
-                                <input required type="text" value="{{ event_type.event_type_id }}" name="tag" id="tag" placeholder="/30min" class="max-w-lg block w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:max-w-xs sm:text-sm border-gray-300 rounded-md">
+                                <input required type="text" {% if event_type.tag %}value="{{ event_type.tag }}" {% else %}value="{{ event_type.event_type_id }}"{% endif %} name="tag" id="tag" placeholder="/30min" class="max-w-lg block w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:max-w-xs sm:text-sm border-gray-300 rounded-md">
                               </div>
                             </div>
 
@@ -127,7 +127,7 @@
                                     Event type calendar link
                                 </label>
                                 <div class="mt-1 sm:mt-0 sm:col-span-2">
-                                    <p class="mt-2 text-sm text-gray-500">https://{{ ''|site_url_filter() }}/{{ current_user.username }}/<span id="link-tag">{{ event_type.event_type_id }}</span></p>
+                                    <p class="mt-2 text-sm text-gray-500">https://{{ ''|site_url_filter() }}/{{ current_user.username }}/<span id="link-tag">{% if event_type.tag %}{{ event_type.tag }}{% else %}{{ event_type.event_type_id }}{% endif %}</span></p>
                                 </div>
                             </div>
                           </div>
