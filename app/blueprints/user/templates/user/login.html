@@ -6,7 +6,7 @@
 {% block body %}
     <head>
         <!-- Tailwind CSS -->
-        <link rel=stylesheet type=text/css href="{{ url_for('static', filename='tailwindcss/tailwind.css') }}">
+        <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
 
         <!-- Icons -->
         <link rel=stylesheet type=text/css href="{{ url_for('static', filename='icons/styles.css') }}">
@@ -40,8 +40,8 @@
                 </div>
             {% endcall %}
             <div class="text-center md-margin-top">
-                <a href="{{ url_for('user.begin_password_reset') }}" class="text-muted">
-                    Forgot your password?
+                <a class="text-indigo-500 text-muted" href="{{ url_for('user.begin_password_reset') }}">
+                    <u>Forgot your password?</u>
                 </a>
             </div>
             <br/>

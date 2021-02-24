@@ -6,37 +6,55 @@
 {% block body %}
     <head>
         <!-- Tailwind CSS -->
-        <link rel=stylesheet type=text/css href="{{ url_for('static', filename='tailwindcss/tailwind.css') }}">
+        <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
 
         <!-- Icons -->
         <link rel=stylesheet type=text/css href="{{ url_for('static', filename='icons/styles.css') }}">
     </head>
     <div class="row">
-        <div class="block-content" style="width:50%;min-width:300px;max-width:350px;margin:0 auto;
+        <div class="block-content font-medium" style="width:50%;min-width:300px;max-width:350px;margin:0 auto;
     border:1px solid #c5c5c5;border-radius:4px; padding:20px;float:none;margin-top:50px; background-color:#fff;">
             {% call f.form_tag('user.signup') %}
-                <legend class="text-center">Thanks for installing {{ 'site'|site_name_filter|title }}!</legend>
-                <p>Please enter the email you want to use with this account and a password to finish setting up your
-                    account.</p>
-                {% call f.form_group(form.url, css_class='sm-margin-bottom') %}
+                <legend class="text-center">Sign up for {{ 'site'|site_name_filter|title }}</legend>
+                <p>Please enter the email you want to use with this account and a password to set up your account.</p>
+
+                {% call f.form_group(form.name, css_class='sm-margin-bottom', autofocus='autofocus') %}
                 {% endcall %}
+
+                {#{% call f.form_group(form.username, css_class='sm-margin-bottom') %}
+                {% endcall %}
+                <p>{{ ''|site_url_filter() }}/<span id="calendar-link"></span></p>#}
 
                 {% call f.form_group(form.email, css_class='sm-margin-bottom') %}
                 {% endcall %}
 
-                {% call f.form_group(form.password, css_class='sm-margin-bottom', autofocus='autofocus') %}
+                {% call f.form_group(form.password, css_class='sm-margin-bottom') %}
                 {% endcall %}
+
+                {#{% call f.form_group(form.confirm, css_class='sm-margin-bottom', autofocus='autofocus') %}
+                {% endcall %}#}
                 <div class="row">
                     <div class="col-md-6" style="float:none;margin:0 auto;">
                         <button type="submit" class="btn btn-block bg-indigo-500 text-white-800">
-                            <span style="color:white">Complete</span>
+                            <span style="color:white">Sign up</span>
                         </button>
                     </div>
                 </div>
                 <div class="row"><br/></div>
             {% endcall %}<br/>
+            <p>Already have an account? <a class="text-indigo-500" href="{{ url_for('user.login') }}"><u>Login</u></a> instead.</p><br />
             <small>By signing up you agree to our <a href="{{ url_for('page.privacy') }}">Privacy Policy</a> and <a
                     href="{{ url_for('page.terms') }}">Terms of Service</a></small>
         </div>
     </div>
+
+    <script>
+        document.getElementById("username").addEventListener("input", function(){
+            document.getElementById("calendar-link").value = document.getElementById("username").value.toLowerCase().replace(/[^a-z]+/g, '');
+        });
+
+        {#document.getElementById("domain").addEventListener("input", function(){
+            document.getElementById("domain").value = document.getElementById("domain").value.toLowerCase().replace(/[^a-z]+/g, '');
+        });#}
+    </script>
 {% endblock %}

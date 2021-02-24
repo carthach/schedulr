@@ -88,6 +88,9 @@
 #myc-available-time-container {
     border-top: 1px solid #e0e0e0;
     min-height: 150px;
+
+    /* Ricky*/
+    background-color: #ffffff;
 }
 
 .myc-day-time-container {

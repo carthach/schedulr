@@ -7,7 +7,8 @@
 }
 
 #myc-nav-container {
-    margin-bottom: 15px;
+    /* Ricky */
+    margin-bottom: 5px;
     width:100%;
     /*width: inherit*/
 }
@@ -96,6 +97,7 @@
     min-height: 150px;
 
     /* Ricky */
+    background-color: #ffffff;
     max-height: 530px;
     overflow-y: auto;
 }

@@ -110,12 +110,12 @@
                 </div>#}
             </div>
 
-            <div class="grid md:grid-cols-6 sm:gap-2 lg:gap-2 sm:grid-cols-2 lg:grid-cols-6 mb-5">
-                <div class="flex flex-col mb-5 col-span-3">
+            <div class="grid md:grid-cols-12 sm:gap-2 lg:gap-2 sm:grid-cols-2 lg:grid-cols-12 mb-5">
+                <div class="flex flex-col mb-5 col-span-5">
                     <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                         <div class="py-1 align-middle inline-block min-w-full sm:px-6 lg:px-8">
-                            <div style="margin:0 auto; float:none;width:500px;">
-                                <h1 class="mb-2 text-xl font-w700 text-gray-900">{{ event_type.title | title }}</h1>
+                            <div style="width:650px;margin:0 auto; float:none;">
+                                <h1 class="mb-5 text-xl font-w700 text-gray-900">{{ event_type.title | title }} - Available times</h1>
                                 <div id="calendar"></div>
                                 {% include '/user/includes/calendar.html' ignore missing %}
                             </div>
@@ -123,7 +123,7 @@
                     </div>
                 </div>
 
-                <div class="flex flex-col mb-5 col-span-1">
+                <div class="flex flex-col mb-5 col-span-2">
                     <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                         <div class="py-1 align-middle inline-block min-w-full sm:px-6 lg:px-8">
                             <div>
@@ -134,14 +134,82 @@
                     </div>
                 </div>
 
-                <div class="flex flex-col mb-5 col-span-1">
-                    <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                <div class="flex flex-col mb-5 col-span-5">
+                    <div class="pl-5 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                         <div class="py-1 align-middle inline-block min-w-full sm:px-6 lg:px-8">
-                            <div id="selected-date-confirm" class="hidden" style="padding:60px 0 0 50px">
-                                <a href="#" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-full shadow-sm text-white hover:bg-blue-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                                style="background-color:#29b6f6;">
-                                    Confirm appointment<span id="selected-date" class="hidden"></span>
-                                </a>
+                            <div id="selected-date-confirm" class="hidden" style="padding:50px 0 0 35px">
+                                <div class="bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200">
+                                    <div class="px-4 py-5 sm:px-6">
+                                        <div>
+                                            <h3 class="text-lg leading-6 font-medium text-gray-900">
+                                                {{ event_type.title | title }}
+                                            </h3>
+                                            <p class="mt-1 max-w-2xl text-sm text-gray-500">
+                                                <i class="fa fa-clock-o mr-2 w-2 h-2"></i>{{ event_type.duration_minutes }} minutes
+                                            </p>
+                                            <p class="mt-1 max-w-2xl text-sm text-gray-500">
+                                                <i class="fa fa-calendar-check-o mr-2 w-2 h-2"></i><span id="selected-date"></span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="pl-4 pr-4 pb-5">
+                                        <form class="space-y-8 divide-y divide-gray-200">
+                                          <div class="space-y-8 divide-y divide-gray-200 sm:space-y-5">
+                                            <div>
+                                              <div class="space-y-6 sm:space-y-5">
+                                                <div class="sm:grid sm:grid-cols-4 sm:gap-4 sm:items-start sm:pt-5">
+                                                  <label for="name" class="block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">
+                                                    Name<span style="color:red">*</span>
+                                                  </label>
+                                                  <div class="mt-1 sm:mt-0 sm:col-span-3">
+                                                    <input required type="text" name="name" id="name" autocomplete="name" class="max-w-lg block w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:max-w-xs sm:text-sm border-gray-300 rounded-md">
+                                                  </div>
+                                                </div>
+
+                                                <div class="sm:grid sm:grid-cols-4 sm:gap-4 sm:items-start sm:border-t sm:border-gray-200 sm:pt-5">
+                                                  <label for="email" class="block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">
+                                                    Email address<span style="color:red">*</span>
+                                                  </label>
+                                                  <div class="mt-1 sm:mt-0 sm:col-span-3">
+                                                    <input required id="email" name="email" type="email" autocomplete="email" class="block max-w-lg w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border-gray-300 rounded-md">
+                                                  </div>
+                                                </div>
+
+                                                <div class="sm:grid sm:grid-cols-4 sm:gap-4 sm:items-start sm:border-t sm:border-gray-200 sm:pt-5">
+                                                  <label for="zoom" class="text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">
+                                                    <img class="mr-2" src="http://assets.stickpng.com/thumbs/5e8ce318664eae0004085461.png" style="display:inline" width="17px" height="17px" />Zoom Link
+                                                  </label>
+                                                  <div class="mt-1 sm:mt-0 sm:col-span-3">
+                                                    <input required id="zoom" name="zoom" type="text" autocomplete="zoom" class="block max-w-lg w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border-gray-300 rounded-md">
+                                                  </div>
+                                                </div>
+
+                                                <div class="sm:grid sm:grid-cols-4 sm:gap-4 sm:items-start sm:border-t sm:border-gray-200 sm:pt-5">
+                                                  <label for="about" class="block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">
+                                                    Notes
+                                                  </label>
+                                                  <div class="mt-1 sm:mt-0 sm:col-span-3">
+                                                    <textarea id="notes" name="notes" rows="7" style="resize:none;" class="max-w-lg shadow-sm block w-full focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border-gray-300 rounded-md"></textarea>
+                                                    <p class="mt-2 text-sm text-gray-500">Enter any notes for this meeting.</p>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                            </div>
+                                          </div>
+
+                                          <div class="pt-5">
+                                            <div class="flex justify-end">
+                                              <button type="button" class="bg-white py-2 px-4 border border-gray-300 rounded-full shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                                Cancel
+                                              </button>
+                                              <button type="submit" class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-full text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                                Confirm meeting
+                                              </button>
+                                            </div>
+                                          </div>
+                                        </form>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -157,6 +225,7 @@
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="{{ url_for('static', filename='calendars/availability/js/mark-your-calendar.js') }}"></script>
 <script src="{{ url_for('static', filename='calendars/calendars.js') }}"></script>
+<script src="{{ url_for('static', filename='calendars/moment.js') }}"></script>
 
 <script>
     function ShowDropdown(id) {
@@ -212,7 +281,10 @@
 <!-- Pickers -->
 <!-- Availability -->
 <script>
-    let interval = parseInt('{{ event_type.duration_minutes }}');
+    let interval = 30;
+
+    if (!(typeof '{{ event_type.duration_minutes }}' === 'undefined'))
+        interval = parseInt('{{ event_type.duration_minutes }}');
     let myHours = [generateTimes(interval)];
 
     let d = new Date();
@@ -238,7 +310,8 @@
     }
 
     function FormatDate(date){
-        return date;
+        let r = moment(date).format('dddd, MMMM Do YYYY @ h:mm a');
+        return r;
     }
 
     <!-- FlatPickr -->

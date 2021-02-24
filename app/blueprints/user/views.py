@@ -31,12 +31,11 @@ from app.blueprints.page.date import get_timezone
 from app.blueprints.calendar.models.event_type import EventType
 from app.blueprints.shopify.models.plan import Plan
 from app.blueprints.user.forms import (
+    SignupForm,
     LoginForm,
     LoginFormExistingStore,
     BeginPasswordResetForm,
     PasswordResetForm,
-    SignupFormDestinationStore,
-    SignupFormSourceStore,
     WelcomeForm,
     UpdateCredentials)
 
@@ -140,15 +139,13 @@ Signup with an account
 @csrf.exempt
 def signup():
     from app.blueprints.base.functions import print_traceback
-    form = SignupFormSourceStore()
-
-    # Populate the form
-    if 'shopify_url' in session and 'shopify_email' in session:
-        form.url.data = session['shopify_url']
-        form.email.data = session['shopify_email']
+    form = SignupForm()
 
     try:
+        print(request.args)
+        print(form.data)
         if form.validate_on_submit():
+            print("Form validated")
             if db.session.query(exists().where(User.email == request.form.get('email'))).scalar():
                 flash(Markup("There is already an account using this email. Please use another or <a href='" + url_for(
                     'user.login') + "'><span class='text-indigo-700'><u>login</span></u></a>."), category='error')
@@ -158,23 +155,12 @@ def signup():
 
             form.populate_obj(u)
             u.password = User.encrypt_password(request.form.get('password'))
-            u.role = 'owner'
+            u.role = 'member'
 
             # Save the user to the database
             u.save()
 
             if login_user(u):
-
-                # Set the shop's user id to the current user
-                if 'shopify_id' in session and session['shopify_id'] is not None:
-                    shop = Shop.query.filter(Shop.shopify_id == session['shopify_id']).scalar()
-                    if shop is not None:
-                        shop.user_id = u.id
-                        shop.save()
-
-                        flash("You've successfully signed up!", 'success')
-                        return redirect(url_for('user.start', shop_url=shop.url))
-
                 # from app.blueprints.user.tasks import send_owner_welcome_email
                 # from app.blueprints.contact.mailerlite import create_subscriber
 
@@ -183,19 +169,9 @@ def signup():
 
                 # Log the user in
                 flash("You've successfully signed up!", 'success')
-                return redirect(url_for('user.calendar'))
-            else:
-                # Delete the shop from the database
-                if 'shopify_id' in session and session['shopify_id'] is not None:
-                    shop = Shop.query.filter(Shop.shopify_id == session['shopify_id']).scalar()
-                    if shop is not None:
-                        shop.delete()
+                return redirect(url_for('user.events'))
+        print("Form NOT validated")
     except Exception as e:
-        # Delete the shop from the database
-        if 'shopify_id' in session and session['shopify_id'] is not None:
-            shop = Shop.query.filter(Shop.shopify_id == session['shopify_id']).scalar()
-            if shop is not None:
-                shop.delete()
         print_traceback(e)
 
     return render_template('user/signup.html', form=form)
@@ -285,10 +261,9 @@ def calendar(event_id=None):
         event_type = EventType.query.filter(EventType.event_type_id == event_id).scalar()
 
         if event_type is not None:
-            title = event_type.title
             return render_template('user/calendar.html', current_user=current_user, event_type=event_type)
 
-    return render_template('user/calendar.html', current_user=current_user)
+    return redirect(url_for('user.events'))
 
 
 @user.route('/events/', methods=['GET', 'POST'])
@@ -360,21 +335,21 @@ def save_event_type():
     return redirect(url_for('user.events'))
 
 
-@user.route('/start', methods=['GET', 'POST'])
-@user.route('/start/<shop_url>', methods=['GET', 'POST'])
-@login_required
-def start(shop_url):
-    if not current_user.is_authenticated:
-        return redirect(url_for('user.login'))
-
-    shop = Shop.query.filter(Shop.url == shop_url).scalar()
-    if shop is None:
-        return redirect(url_for('user.calendar'))
-
-    pending = Sync.query.filter(and_(Sync.destination_url == shop_url, Sync.active.is_(False))).all()
-    plans = Plan.query.all()
-
-    return render_template('user/start.html', current_user=current_user, shop_id=shop.shop_id, pending=pending, plans=plans)
+# @user.route('/start', methods=['GET', 'POST'])
+# @user.route('/start/<shop_url>', methods=['GET', 'POST'])
+# @login_required
+# def start(shop_url):
+#     if not current_user.is_authenticated:
+#         return redirect(url_for('user.login'))
+#
+#     shop = Shop.query.filter(Shop.url == shop_url).scalar()
+#     if shop is None:
+#         return redirect(url_for('user.calendar'))
+#
+#     pending = Sync.query.filter(and_(Sync.destination_url == shop_url, Sync.active.is_(False))).all()
+#     plans = Plan.query.all()
+#
+#     return render_template('user/start.html', current_user=current_user, shop_id=shop.shop_id, pending=pending, plans=plans)
 
 
 # Settings -------------------------------------------------------------------
@@ -605,22 +580,22 @@ Syncing
 #     return render_template('user/product.html', current_user=current_user, product=p, stores=store_names)
 #
 #
-@user.route('/calendar/<s>', methods=['GET', 'POST'])
-@csrf.exempt
-@cross_origin()
-def sort_products(s):
-    shop = Shop.query.filter(Shop.user_id == current_user.id).scalar()
-    products = get_all_products(shop)
-
-    # Print the list
-    # pprint.pprint(products)
-
-    if s == 'alphabetical':
-        products.sort(key=lambda x: x.title)
-    else:
-        products.sort(key=lambda x: x.created, reverse=True)
-
-    return render_template('user/calendar.html', current_user=current_user, s=s, products=products)
+# @user.route('/calendar/<s>', methods=['GET', 'POST'])
+# @csrf.exempt
+# @cross_origin()
+# def sort_products(s):
+#     shop = Shop.query.filter(Shop.user_id == current_user.id).scalar()
+#     products = get_all_products(shop)
+#
+#     # Print the list
+#     # pprint.pprint(products)
+#
+#     if s == 'alphabetical':
+#         products.sort(key=lambda x: x.title)
+#     else:
+#         products.sort(key=lambda x: x.created, reverse=True)
+#
+#     return render_template('user/calendar.html', current_user=current_user, s=s, products=products)
 
 
 # Actions -------------------------------------------------------------------

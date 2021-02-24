@@ -49,23 +49,10 @@ class SignupForm(ModelForm):
         DataRequired()
     ])
 
-    email = EmailField(validators=[
-        DataRequired(),
-        Email(),
-        Unique(User.email, get_session=lambda: db.session, message='This email is already in use. Login instead?')
-    ])
-
-    password = PasswordField('Create a password', [DataRequired(), Length(8, 128)])
-    # confirm = PasswordField("Repeat Password", [DataRequired(), EqualTo("password", message="Passwords don't match!"), Length(8, 128)])
-
-
-class SignupFormSourceStore(ModelForm):
-    # name = StringField(validators=[
-    #     DataRequired()
+    # username = StringField(validators=[
+    #     Unique(User.username, get_session=lambda: db.session, message='This username is already taken!')
     # ])
 
-    url = StringField('Store URL')
-
     email = EmailField(validators=[
         DataRequired(),
         Email(),
@@ -73,26 +60,44 @@ class SignupFormSourceStore(ModelForm):
     ])
 
     password = PasswordField('Create a password', [DataRequired(), Length(8, 128)])
-
-    def __init__(self, *args, **kwargs):
-        super(SignupFormSourceStore, self).__init__(*args, **kwargs)
-        read_only(self.url)
-        # read_only(self.email)
+    # confirm = PasswordField("Repeat Password",
+    #                         [DataRequired(), EqualTo("password", message="Passwords don't match!"), Length(8, 128)])
 
 
-class SignupFormDestinationStore(ModelForm):
-    url = StringField('Store URL')
-
-    email = EmailField(validators=[
-        DataRequired(),
-        Email()
-    ])
-
-    password = PasswordField('Create a password', [DataRequired(), Length(8, 128)])
-
-    def __init__(self, *args, **kwargs):
-        super(SignupFormDestinationStore, self).__init__(*args, **kwargs)
-        read_only(self.url)
+# class SignupFormSourceStore(ModelForm):
+#     # name = StringField(validators=[
+#     #     DataRequired()
+#     # ])
+#
+#     url = StringField('Store URL')
+#
+#     email = EmailField(validators=[
+#         DataRequired(),
+#         Email(),
+#         Unique(User.email, get_session=lambda: db.session, message='This email is already in use. Login instead?')
+#     ])
+#
+#     password = PasswordField('Create a password', [DataRequired(), Length(8, 128)])
+#
+#     def __init__(self, *args, **kwargs):
+#         super(SignupFormSourceStore, self).__init__(*args, **kwargs)
+#         read_only(self.url)
+#         # read_only(self.email)
+#
+#
+# class SignupFormDestinationStore(ModelForm):
+#     url = StringField('Store URL')
+#
+#     email = EmailField(validators=[
+#         DataRequired(),
+#         Email()
+#     ])
+#
+#     password = PasswordField('Create a password', [DataRequired(), Length(8, 128)])
+#
+#     def __init__(self, *args, **kwargs):
+#         super(SignupFormDestinationStore, self).__init__(*args, **kwargs)
+#         read_only(self.url)
 
 
 class WelcomeForm(ModelForm):
