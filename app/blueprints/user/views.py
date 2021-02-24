@@ -308,18 +308,24 @@ def confirm_event(event_type_id=None):
 @cross_origin()
 def save_event_type():
     if request.method == 'POST':
-        if 'event_type_id' in request.form and 'name' in request.form and 'duration' in request.form and 'description' in request.form:
+        if 'event_type_id' in request.form and 'name' in request.form \
+                and 'duration' in request.form and 'description' in request.form and 'tag' in request.form:
             event_type_id = request.form['event_type_id']
             name = request.form['name']
             duration = request.form['duration']
             description = request.form['description']
+            tag = request.form['tag']
+
+            if tag.endswith('-'):
+                tag = tag[:-1]
 
             # Create a new event type
             if not db.session.query(exists().where(EventType.event_type_id == event_type_id)).scalar():
                 data = {
                     'title': name,
                     'description': description,
-                    'duration_minutes': duration
+                    'duration_minutes': duration,
+                    'tag': tag
                 }
 
                 e = EventType(user_id=current_user.id, **data)
@@ -331,6 +337,7 @@ def save_event_type():
                     e.title = name
                     e.description = description
                     e.duration_minutes = duration
+                    e.tag = tag
                     e.save()
     return redirect(url_for('user.events'))
 
