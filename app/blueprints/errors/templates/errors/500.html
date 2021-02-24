@@ -131,7 +131,7 @@
                         <li class="divider"></li>
                         <li class="dropdown-header">Actions</li>
                         <li>
-                            <a tabindex="-1" href="{{ url_for('user.dashboard') }}">
+                            <a tabindex="-1" href="{{ url_for('user.calendar') }}">
                                 <i class="si si-grid pull-right"></i>My Dashboard
                             </a>
                         </li>
@@ -161,7 +161,7 @@
             <li>
                 <!-- Opens the Apps modal found at the bottom of the page, before including JS code -->
                 <button class="btn btn-default pull-right" style="margin-top:0px;" data-toggle="modal"
-                        onclick="window.location.href='{{ url_for('user.dashboard') }}" }}
+                        onclick="window.location.href='{{ url_for('user.calendar') }}" }}
                 '" type="button">
                 <i class="si si-home"></i>
                 </button>
@@ -218,7 +218,7 @@
                                         <div style="text-align:center; font-size:24px;"><br/><br/>
                                             Whoops, looks like an error occured.<br/><br/>
 
-                                            Please click <a href="{{ url_for('user.dashboard') }}"><span
+                                            Please click <a href="{{ url_for('user.calendar') }}"><span
                                                     style="color:#0073ff">here</span></a> to return to your dashboard.
                                         </div>
                                     </div>

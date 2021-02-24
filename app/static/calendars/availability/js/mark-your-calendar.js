@@ -17,10 +17,10 @@
     $.fn.markyourcalendar = function(opts) {
         var prevHtml = `
             <div id="myc-prev-week">
-                <
+                <i class="fa fa-angle-left"></i>
             </div>
         `;
-        var nextHtml = `<div id="myc-next-week">></div>`;
+        var nextHtml = `<div id="myc-next-week"><i class="fa fa-angle-right"></i></div>`;
         var defaults = {
             availability: [[], [], [], [], [], [], []], // listahan ng mga oras na pwedeng piliin
             isMultiple: false,
@@ -107,6 +107,7 @@
                         </a>
                     `;
                 });
+
                 tmp += `
                     <div class="myc-day-time-container" id="myc-day-time-container-` + i + `">
                         ` + tmpAvailTimes + `

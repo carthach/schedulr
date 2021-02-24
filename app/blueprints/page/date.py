@@ -1,5 +1,6 @@
 # import dateutil.relativedelta
 # import dateutil.parser
+from dateutil.tz import tzlocal
 from datetime import tzinfo, timezone, timedelta, datetime as dtime
 import datetime
 import time
@@ -281,6 +282,10 @@ def get_datetime_from_datestring(time_string):
 
 def datetime_to_int(dt):
     return time.mktime(dt)
+
+
+def get_timezone():
+    return datetime.datetime.now().astimezone().tzinfo
 
 
 ### Datetime JSON serializer###################################################

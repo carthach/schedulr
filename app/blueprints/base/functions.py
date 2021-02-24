@@ -1,13 +1,11 @@
 import string
-import time
 import random
 import pytz
 import names
 import traceback
 from datetime import datetime as dt
 from app.extensions import db
-from sqlalchemy import exists, and_
-from app.blueprints.page.date import get_year_date_string
+from sqlalchemy import exists
 from app.blueprints.user.models.user import User
 
 
@@ -77,7 +75,6 @@ def is_admin(current_user):
 # Users ###################################################
 def create_anon_user(email):
     from app.blueprints.user.models.user import User
-    from app.blueprints.user.tasks import send_temp_password_email
 
     if not db.session.query(exists().where(User.email == email)).scalar():
         password = generate_temp_password()
@@ -116,10 +113,6 @@ def set_inactive(current_user):
     current_user.domain_id = None
     current_user.active = False
     current_user.save()
-
-
-def get_timezone():
-    return time.strftime("%Z", time.gmtime())
 
 
 # Other ###################################################

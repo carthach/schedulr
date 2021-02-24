@@ -94,6 +94,10 @@
 #myc-available-time-container {
     border-top: 1px solid #e0e0e0;
     min-height: 150px;
+
+    /* Ricky */
+    max-height: 530px;
+    overflow-y: auto;
 }
 
 .myc-day-time-container {

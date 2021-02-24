@@ -91,7 +91,6 @@ def seed_events():
 
     event_type_30 = {
         'user_id': u.id,
-        'calendar_id': c.calendar_id,
         'title': '30 minute meeting',
         'description': 'A meeting that will only last 30 minutes',
         'duration_minutes': 30
@@ -99,7 +98,6 @@ def seed_events():
 
     event_type_60 = {
         'user_id': u.id,
-        'calendar_id': c.calendar_id,
         'title': '60 minute meeting',
         'description': 'A meeting that will last an hour',
         'duration_minutes': 60,

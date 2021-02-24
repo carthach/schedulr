@@ -80,7 +80,7 @@
                             </p>
                           </div>
 
-                          <input type="hidden" value="{{ event_type.event_type_id }}" name="event_type_id" id="event_type_id">
+                          <input type="hidden" value="{{ event.event_type_id }}" name="event_id" id="event_id">
 
                           <div class="mt-6 sm:mt-5 space-y-6 sm:space-y-5">
                             <div class="sm:grid sm:grid-cols-3 sm:gap-4 sm:items-start sm:border-t sm:border-gray-200 sm:pt-5">
@@ -88,7 +88,7 @@
                                 Event name <span style="color:red">*</span>
                               </label>
                               <div class="mt-1 sm:mt-0 sm:col-span-2">
-                                <input required type="text" name="name" id="name" {% if event_type.title is not none %}value="{{ event_type.title }}"{% endif %} autocomplete="event-name" placeholder="Event name" class="max-w-lg block w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:max-w-xs sm:text-sm border-gray-300 rounded-md">
+                                <input required type="text" name="event_name" id="event_name" {% if event.title is not none %}value="{{ event.title }}"{% endif %} autocomplete="event-name" placeholder="Event name" class="max-w-lg block w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:max-w-xs sm:text-sm border-gray-300 rounded-md">
                               </div>
                             </div>
 
@@ -97,7 +97,7 @@
                                 Description
                               </label>
                               <div class="mt-1 sm:mt-0 sm:col-span-2">
-                                <textarea id="description" name="description" rows="5" class="max-w-lg shadow-sm block w-full focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border-gray-300 rounded-md">{% if event_type.description is not none %}{{ event_type.description }}{% endif %}
+                                <textarea id="description" name="description" rows="5" class="max-w-lg shadow-sm block w-full focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border-gray-300 rounded-md">{{ event.description }}
                                 </textarea>
                                 <p class="mt-2 text-sm text-gray-500">Enter a description or instructions for this meeting.</p>
                               </div>
@@ -108,7 +108,7 @@
                                 Duration <span style="color:red">*</span>
                               </label>
                               <div class="mt-1 sm:mt-0 sm:col-span-2">
-                                <input required type="number" min="1" name="duration" size="4" width="2" id="duration" placeholder="30" value="{{ event_type.duration_minutes }}" autocomplete="duration" class="mr-2 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:max-w-xs sm:text-sm border-gray-300 rounded-md">
+                                <input required type="number" min="1" name="duration" size="4" width="2" id="duration" placeholder="30" value="{{ event.duration_minutes }}" autocomplete="duration" class="mr-2 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:max-w-xs sm:text-sm border-gray-300 rounded-md">
                                 minutes
                               </div>
                             </div>
@@ -121,7 +121,7 @@
                                 <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
                                   https://{{ ''|site_url_filter() }}/{{ current_user.username }}/
                                 </span>
-                                <input required type="text" value="{{ event_type.event_type_id }}" name="event_link" id="event_link" class="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border-gray-300">
+                                <input required type="text" value="{{ event.event_type_id }}" name="event_link" id="event_link" class="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border-gray-300">
                               </div>
                             </div>
                           </div>

@@ -27,7 +27,7 @@ from lib.safe_next_url import safe_next_url
 from app.blueprints.user.decorators import anonymous_required
 from app.blueprints.shopify.functions import get_all_products, update_sync, get_product_count, get_product_by_id
 from app.blueprints.user.models.user import User
-from app.blueprints.base.functions import get_timezone
+from app.blueprints.page.date import get_timezone
 from app.blueprints.calendar.models.event_type import EventType
 from app.blueprints.shopify.models.plan import Plan
 from app.blueprints.user.forms import (
@@ -111,7 +111,7 @@ def login():
 
                     if next_url == url_for('user.login') or next_url == '' or next_url is None:
                         # Take them to the settings page
-                        next_url = url_for('user.dashboard')
+                        next_url = url_for('user.calendar')
 
                     if next_url:
                         return redirect(safe_next_url(next_url), code=307)
@@ -183,7 +183,7 @@ def signup():
 
                 # Log the user in
                 flash("You've successfully signed up!", 'success')
-                return redirect(url_for('user.dashboard'))
+                return redirect(url_for('user.calendar'))
             else:
                 # Delete the shop from the database
                 if 'shopify_id' in session and session['shopify_id'] is not None:
@@ -276,81 +276,84 @@ Pages
 """
 
 
-@user.route('/dashboard/', methods=['GET', 'POST'])
-@user.route('/dashboard/<int:page>', methods=['GET', 'POST'])
+@user.route('/calendar/', methods=['GET', 'POST'])
+@user.route('/calendar/<event_id>', methods=['GET', 'POST'])
 @csrf.exempt
 @cross_origin()
-def dashboard(page=1):
-    tz = get_timezone()
-    # shop = Shop.query.filter(Shop.user_id == current_user.id).scalar()
+def calendar(event_id=None):
+    if event_id is not None:
+        event_type = EventType.query.filter(EventType.event_type_id == event_id).scalar()
 
-    # products = get_all_products(shop)
+        if event_type is not None:
+            title = event_type.title
+            return render_template('user/calendar.html', current_user=current_user, event_type=event_type)
 
-    # How many products per page
-    # offset = 20
-    # page_start, page_finish, pagination, total_pages = get_pagination(products, offset, page)
-    # prev_page, next_page = page - 1, page + 1
-
-    # Print the list
-    # pprint.pprint(products)
-
-    # return render_template('user/dashboard.html', current_user=current_user, total=len(products),
-    #                        products=pagination, start=page_start, finish=page_finish,
-    #                        total_pages=total_pages, page=page, prev=prev_page, next=next_page)
-    return render_template('user/dashboard.html', current_user=current_user, tz=tz)
+    return render_template('user/calendar.html', current_user=current_user)
 
 
 @user.route('/events/', methods=['GET', 'POST'])
-@user.route('/events/<event_id>', methods=['GET', 'POST'])
+@user.route('/events/<event_type_id>', methods=['GET', 'POST'])
 @csrf.exempt
 @cross_origin()
-def events(event_id=None):
-    if event_id is not None:
-        event = EventType.query.filter(EventType.event_type_id == event_id).scalar()
-        return render_template('user/event_type.html', current_user=current_user, event=event)
+def events(event_type_id=None):
+    if event_type_id is not None:
+        event_type = EventType.query.filter(EventType.event_type_id == event_type_id).scalar()
+        return render_template('user/event_type.html', current_user=current_user, event_type=event_type)
     else:
         event_types = EventType.query.filter(EventType.user_id == current_user.id).all()
         event_types.sort(key=lambda x: x.created_on)
         return render_template('user/events.html', current_user=current_user, event_types=event_types)
 
 
-@user.route('/create_event/', methods=['GET', 'POST'])
+@user.route('/create_event_type/', methods=['GET', 'POST'])
 @csrf.exempt
 @cross_origin()
-def create_event():
-    event = EventType(user_id=current_user.id)
-    if event is not None:
-        return render_template('user/event_type.html', current_user=current_user, event=event)
+def create_event_type():
+    event_type = EventType(user_id=current_user.id)
+    if event_type is not None:
+        return render_template('user/event_type.html', current_user=current_user, event_type=event_type)
     else:
         return redirect(url_for('user.events'))
 
 
-@user.route('/save_event', methods=['GET', 'POST'])
+@user.route('/confirm_event/<event_type_id>', methods=['GET', 'POST'])
 @csrf.exempt
 @cross_origin()
-def save_event():
+def confirm_event(event_type_id=None):
+    if event_type_id is not None:
+        event_type = EventType.query.filter(EventType.event_type_id == event_type_id).scalar()
+        if event_type is not None:
+            return render_template('user/create_event.html', current_user=current_user, event_type=event_type)
+
+    return redirect(url_for('user.events'))
+
+
+@user.route('/save_event_type', methods=['GET', 'POST'])
+@csrf.exempt
+@cross_origin()
+def save_event_type():
     if request.method == 'POST':
-        if 'event_id' in request.form and 'event_name' in request.form and 'duration' in request.form and 'description' in request.form:
-            event_id = request.form['event_id']
-            event_name = request.form['event_name']
+        if 'event_type_id' in request.form and 'name' in request.form and 'duration' in request.form and 'description' in request.form:
+            event_type_id = request.form['event_type_id']
+            name = request.form['name']
             duration = request.form['duration']
             description = request.form['description']
 
             # Create a new event type
-            if not db.session.query(exists().where(EventType.event_type_id == event_id)).scalar():
+            if not db.session.query(exists().where(EventType.event_type_id == event_type_id)).scalar():
                 data = {
-                    'title': event_name,
+                    'title': name,
                     'description': description,
                     'duration_minutes': duration
                 }
 
                 e = EventType(user_id=current_user.id, **data)
-                e.event_type_id = event_id
+                e.event_type_id = event_type_id
                 e.save()
             else:
-                e = EventType.query.filter(EventType.event_type_id == event_id).scalar()
+                e = EventType.query.filter(EventType.event_type_id == event_type_id).scalar()
                 if e is not None:
-                    e.title = event_name
+                    e.title = name
                     e.description = description
                     e.duration_minutes = duration
                     e.save()
@@ -366,7 +369,7 @@ def start(shop_url):
 
     shop = Shop.query.filter(Shop.url == shop_url).scalar()
     if shop is None:
-        return redirect(url_for('user.dashboard'))
+        return redirect(url_for('user.calendar'))
 
     pending = Sync.query.filter(and_(Sync.destination_url == shop_url, Sync.active.is_(False))).all()
     plans = Plan.query.all()
@@ -395,13 +398,13 @@ Syncing
 #     if sync_id is not None:
 #         s = Sync.query.filter(Sync.sync_id == sync_id).scalar()
 #         if s is None:
-#             return redirect(url_for('user.dashboard'))
+#             return redirect(url_for('user.calendar'))
 #
 #         source = Shop.query.filter(Shop.shop_id == s.source_id).scalar()
 #         destination = Shop.query.filter(Shop.shop_id == s.destination_id).scalar()
 #
 #         if source is None or destination is None:
-#             return redirect(url_for('user.dashboard'))
+#             return redirect(url_for('user.calendar'))
 #
 #         products = get_all_products(source)
 #         # products = products * 10
@@ -440,7 +443,7 @@ Syncing
 #
 #                             flash(Markup("You're successfully synced with " + request.form['source_url'] + "."),
 #                                   category='success')
-#                             return redirect(url_for('user.dashboard'))
+#                             return redirect(url_for('user.calendar'))
 #                         else:
 #                             flash("There was an error.", "error")
 #                             return redirect(url_for('user.settings'))
@@ -459,7 +462,7 @@ Syncing
 #
 #                         if db.session.query(exists().where(and_(Sync.source_id == s.shop_id, Sync.destination_url == destination_url))).scalar():
 #                             flash(Markup("There is already an existing sync with " + destination_url + ". Please go to stores above to see syncs."), category='error')
-#                             return redirect(url_for('user.dashboard'))
+#                             return redirect(url_for('user.calendar'))
 #
 #                         plan = request.form['plan_id']
 #
@@ -468,7 +471,7 @@ Syncing
 #
 #                         if p is None:
 #                             flash(Markup("There was an error. Please try again."), category='error')
-#                             return redirect(url_for('user.dashboard'))
+#                             return redirect(url_for('user.calendar'))
 #
 #                         # Create the sync
 #                         t = Sync()
@@ -483,11 +486,11 @@ Syncing
 #
 #                         flash(Markup("You've initiated a sync with " + destination_url + ". That store owner needs to install " + current_app.config.get('APP_NAME') + " to complete the sync."),
 #                               category='success')
-#                         return redirect(url_for('user.dashboard', store_id=s.shop_id))
+#                         return redirect(url_for('user.calendar', store_id=s.shop_id))
 #                     flash(Markup("There was an error. Please try again."), category='error')
 #             else:
 #                 flash(Markup("That store couldn't be found. Please try again."), category='error')
-#     return redirect(url_for('user.dashboard'))
+#     return redirect(url_for('user.calendar'))
 #
 #
 # @user.route('/activate_sync', methods=['GET', 'POST'])
@@ -536,7 +539,7 @@ Syncing
 #         print_traceback(e)
 #
 #         flash("There was an error.", 'error')
-#     return redirect(url_for('user.dashboard'))
+#     return redirect(url_for('user.calendar'))
 #
 #
 # @user.route('/sync_all_products', methods=['GET', 'POST'])
@@ -593,7 +596,7 @@ Syncing
 #
 #     if p is None:
 #         flash("Product not found", 'error')
-#         return redirect(url_for('user.dashboard'))
+#         return redirect(url_for('user.calendar'))
 #
 #     syncs = [x.sync_id for x in SyncedProduct.query.filter(SyncedProduct.source_product_id == p['id'])]
 #     store_names = list(
@@ -602,7 +605,7 @@ Syncing
 #     return render_template('user/product.html', current_user=current_user, product=p, stores=store_names)
 #
 #
-@user.route('/dashboard/<s>', methods=['GET', 'POST'])
+@user.route('/calendar/<s>', methods=['GET', 'POST'])
 @csrf.exempt
 @cross_origin()
 def sort_products(s):
@@ -617,7 +620,7 @@ def sort_products(s):
     else:
         products.sort(key=lambda x: x.created, reverse=True)
 
-    return render_template('user/dashboard.html', current_user=current_user, s=s, products=products)
+    return render_template('user/calendar.html', current_user=current_user, s=s, products=products)
 
 
 # Actions -------------------------------------------------------------------

@@ -15,20 +15,18 @@ class EventType(ResourceMixin, db.Model):
     title = db.Column(db.String(255), unique=False, index=True)
     description = db.Column(db.String, unique=False, index=True)
     duration_minutes = db.Column(db.Integer)
+    tag = db.Column(db.String, unique=False, index=True)
     active = db.Column('is_active', db.Boolean(), nullable=False, server_default='1')
 
     # Relationships.
     user_id = db.Column(db.Integer, db.ForeignKey('users.id', onupdate='CASCADE', ondelete='CASCADE'),
                         index=True, nullable=True, primary_key=False, unique=False)
-    # calendar_id = db.Column(db.BigInteger, db.ForeignKey('calendars.calendar_id', onupdate='CASCADE', ondelete='CASCADE'),
-    #                     index=True, nullable=True, primary_key=False, unique=False)
 
-    def __init__(self, user_id, calendar_id=None, **kwargs):
+    def __init__(self, user_id, **kwargs):
         # Call Flask-SQLAlchemy's constructor.
         super(EventType, self).__init__(**kwargs)
         self.event_type_id = EventType.generate_id()
         self.user_id = user_id
-        # self.calendar_id = calendar_id
         self.active = True
 
     def as_dict(self):

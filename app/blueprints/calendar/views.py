@@ -14,8 +14,8 @@ def test():
         print(results)
         flash("Test was successful.", 'success')
         flash("Results are: " + str(results), 'danger')
-        return redirect(url_for('user.dashboard'))
+        return redirect(url_for('user.calendar'))
     except Exception as e:
         print_traceback(e)
         flash("Test was unsuccessful.", 'error')
-        return redirect(url_for('user.dashboard'))
+        return redirect(url_for('user.calendar'))

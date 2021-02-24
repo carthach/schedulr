@@ -46,7 +46,7 @@ function Vote(feedback_id, logged_in) {
             data: {'feedback_id': feedback_id, 'user_id': '{{ current_user.id }}'},
             success: function (response) {
                 if ('success' in response){
-                    //window.location.href = "{{ url_for('user.dashboard') }}";
+                    //window.location.href = "{{ url_for('user.calendar') }}";
                 }
             },
             error: function (xhr) {

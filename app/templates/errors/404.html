@@ -36,7 +36,7 @@
 <body>
 {#{% include '/user/includes/mobile.html' ignore missing %}#}
 <div class="bg-gray-100" style="height:100vh;">
-    {% with page='dashboard' %}{% include '/user/includes/main_header.html' ignore missing %}{% endwith %}
+    {% with page='calendar' %}{% include '/user/includes/main_header.html' ignore missing %}{% endwith %}
     <main class="flex-1 relative z-0 overflow-y-auto py-6 focus:outline-none font-w400" style="height:auto;">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-8" style="height:80vh;">
             <!-- Replace with your content -->
@@ -48,7 +48,7 @@
                 <span class="text-center rounded-md text-gray-400" style="float:none;margin:0 auto;font-size:24px;">
                                 <span style="clear:both">Sorry, the page you're looking for doesn't exist!<br/>
                                     <span style="font-size:18px;">
-                                        Please click <a href="{{ url_for('user.dashboard') }}"><span
+                                        Please click <a href="{{ url_for('user.calendar') }}"><span
                                             class="text-indigo-600">here</span></a> to return to the dashboard.
                                     </span>
                                 </span>

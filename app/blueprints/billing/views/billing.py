@@ -43,7 +43,7 @@ def create():
     try:
         if current_user.subscription:
             flash('You already have an active subscription.', 'info')
-            return redirect(url_for('user.dashboard'))
+            return redirect(url_for('user.calendar'))
 
         plan = request.args.get('plan')
         subscription_plan = Subscription.get_plan_by_id(plan)
@@ -79,14 +79,14 @@ def create():
             else:
                 flash('You must enable JavaScript for this request.', 'warning')
 
-            return redirect(url_for('user.dashboard'))
+            return redirect(url_for('user.calendar'))
 
         return render_template('billing/payment_method.html',
                                form=form, plan=subscription_plan)
     except Exception as e:
 
         flash('There was an error. We weren\'t able to subscribe you to a plan at this time.', 'error')
-        return redirect(url_for('user.dashboard'))
+        return redirect(url_for('user.calendar'))
 
 
 @billing.route('/update', methods=['GET', 'POST'])
@@ -124,7 +124,7 @@ def update():
                 send_plan_change_email.delay(current_user.email, plan)
 
                 flash('Your plan has been updated. Changes will take effect immediately.', 'success')
-                return redirect(url_for('user.dashboard'))
+                return redirect(url_for('user.calendar'))
 
         return render_template('billing/pricing.html',
                                form=form,
@@ -133,7 +133,7 @@ def update():
     except Exception as e:
 
         flash('There was an error. We weren\'t able to change your plan at this time.', 'error')
-        return redirect(url_for('user.dashboard'))
+        return redirect(url_for('user.calendar'))
 
 
 @billing.route('/cancel', methods=['GET', 'POST'])
@@ -194,7 +194,7 @@ def cancel():
 def update_payment_method():
     if not current_user.credit_card:
         flash('You do not have a payment method on file.', 'error')
-        return redirect(url_for('user.dashboard'))
+        return redirect(url_for('user.calendar'))
 
     active_plan = Subscription.get_plan_by_id(
         current_user.subscription.plan)
@@ -219,7 +219,7 @@ def update_payment_method():
         else:
             flash('You must enable JavaScript for this request.', 'warning')
 
-        return redirect(url_for('user.dashboard'))
+        return redirect(url_for('user.calendar'))
 
     return render_template('billing/payment_method.html', form=form,
                            plan=active_plan, card_last4=str(card.last4))
