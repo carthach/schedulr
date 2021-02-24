@@ -127,7 +127,7 @@
                                     Event type calendar link
                                 </label>
                                 <div class="mt-1 sm:mt-0 sm:col-span-2">
-                                    <p class="mt-2 text-sm text-gray-500">https://{{ ''|site_url_filter() }}/{{ current_user.username }}/<span id="link-tag"></span></p>
+                                    <p class="mt-2 text-sm text-gray-500">https://{{ ''|site_url_filter() }}/{{ current_user.username }}/<span id="link-tag">{{ event_type.event_type_id }}</span></p>
                                 </div>
                             </div>
                           </div>
@@ -190,7 +190,7 @@
     }
 
     document.getElementById("tag").addEventListener("input", function(){
-        document.getElementById("link-tag").innerText = document.getElementById("tag").value.toLowerCase().replace(/[^a-z]+/g, '');
+        document.getElementById("link-tag").innerText = document.getElementById("tag").value.toLowerCase().replace(/[^0-9a-z]+/g, '');
     });
 
 </script>
