@@ -1,12 +1,13 @@
 import re
 import sys
+import time
 import fileinput
 import webbrowser
 
 
 def r(filename, open=False):
     if len(sys.argv) > 1:
-        ngrok = sys.argv[1]
+        ngrok = sys.argv[1].replace('/', '').replace('.', '')
         for line in fileinput.input(filename, inplace=True):
             if '.ngrok.io' in line.strip():
                 regex = re.search(r'\'(.*?).ngrok.io', line).group(1)
@@ -14,6 +15,7 @@ def r(filename, open=False):
             sys.stdout.write(line)
 
         if open:
+            time.sleep(.5)
             open_browser(ngrok)
 
 
