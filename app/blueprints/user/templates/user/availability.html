@@ -7,7 +7,7 @@
 <head>
     <meta charset="utf-8">
 
-    <title>Calendar - {{ 'site_name'|site_name_filter }}</title>
+    <title>My Availability - {{ 'site_name'|site_name_filter }}</title>
 
     <meta name="description" content="Schedulr - Easily schedule meetings">
     <meta name="author" content="pixelcave">
@@ -110,12 +110,75 @@
                 </div>#}
             </div>
 
-            <div class="grid md:grid-cols-12 sm:gap-2 lg:gap-2 sm:grid-cols-2 lg:grid-cols-12 mb-5">
-                <div class="flex flex-col mb-5 col-span-5">
+            <div class="grid md:grid-cols-11 sm:gap-2 lg:gap-2 sm:grid-cols-2 lg:grid-cols-11 mb-5">
+
+                <!-- Spacer -->
+                <div class="flex flex-col mb-5 col-span-1"></div>
+
+                <div class="flex flex-col mb-5 col-span-2">
+                    <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                        <div class="py-1 align-middle inline-block min-w-full sm:px-6 lg:px-8">
+                            <div>
+                                <h1 class="mb-5 text-xl font-w700 text-gray-900">My Connected Calendars</h1>
+                                <!-- This example requires Tailwind CSS v2.0+ -->
+                                <ul class="grid grid-cols-1 gap-6 sm:grid-cols-1 lg:grid-cols-1">
+                                    <li class="col-span-1 bg-white rounded-lg shadow divide-y divide-gray-200">
+                                        <div class="w-full flex items-center justify-between p-6 space-x-6">
+                                            <div class="flex-1 truncate">
+                                                <div class="flex items-center space-x-3">
+                                                <h3 class="text-gray-900 text-sm font-medium truncate">Add a calendar</h3>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    {% for calendar in calendars %}
+                                      <li class="col-span-1 bg-white rounded-lg shadow divide-y divide-gray-200">
+                                        <div class="w-full flex items-center justify-between p-6 space-x-6">
+                                          <div class="flex-1 truncate">
+                                            <div class="flex items-center space-x-3">
+                                              <h3 class="text-gray-900 text-sm font-medium truncate">Jane Cooper</h3>
+                                              <span class="flex-shrink-0 inline-block px-2 py-0.5 text-green-800 text-xs font-medium bg-green-100 rounded-full">Admin</span>
+                                            </div>
+                                            <p class="mt-1 text-gray-500 text-sm truncate">Regional Paradigm Technician</p>
+                                          </div>
+                                          <img class="w-10 h-10 bg-gray-300 rounded-full flex-shrink-0" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=facearea&amp;facepad=4&amp;w=256&amp;h=256&amp;q=60" alt="">
+                                        </div>
+                                        <div>
+                                          <div class="-mt-px flex divide-x divide-gray-200">
+                                            <div class="w-0 flex-1 flex">
+                                              <a href="#" class="relative -mr-px w-0 flex-1 inline-flex items-center justify-center py-4 text-sm text-gray-700 font-medium border border-transparent rounded-bl-lg hover:text-gray-500">
+                                                <!-- Heroicon name: solid/mail -->
+                                                <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                  <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                                                  <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                                                </svg>
+                                                <span class="ml-3">Email</span>
+                                              </a>
+                                            </div>
+                                            <div class="-ml-px w-0 flex-1 flex">
+                                              <a href="#" class="relative w-0 flex-1 inline-flex items-center justify-center py-4 text-sm text-gray-700 font-medium border border-transparent rounded-br-lg hover:text-gray-500">
+                                                <!-- Heroicon name: solid/phone -->
+                                                <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                  <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                                                </svg>
+                                                <span class="ml-3">Call</span>
+                                              </a>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col mb-4 col-span-5">
                     <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                         <div class="py-1 align-middle inline-block min-w-full sm:px-6 lg:px-8">
                             <div style="width:650px;margin:0 auto; float:none;">
-                                <h1 class="mb-5 text-xl font-w700 text-gray-900">{{ event_type.title | title }} - Available times</h1>
+                                <h1 class="mb-5 text-xl font-w700 text-gray-900">My calendars</h1>
                                 <div id="calendar"></div>
                                 {% include '/user/includes/calendar.html' ignore missing %}
                             </div>
@@ -134,102 +197,9 @@
                     </div>
                 </div>
 
-                <div class="flex flex-col mb-5 col-span-5">
-                    <div class="pl-5 pr-10 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-                        <div class="py-1 align-middle inline-block min-w-full sm:px-6 lg:px-8">
-                            <div id="selected-date-confirm" class="hidden" style="padding:50px 0 0 35px">
-                                <div class="bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200">
-                                    <div class="px-4 py-5 sm:px-6">
-                                        <div>
-                                            <h3 class="text-lg leading-6 font-medium text-gray-900">
-                                                {{ event_type.title | title }}
-                                            </h3>
-                                            <p class="mt-1 max-w-2xl text-sm text-gray-500">
-                                                <i class="fa fa-clock-o mr-2 w-2 h-2"></i>{{ event_type.duration_minutes }} minutes
-                                            </p>
-                                            <p class="mt-1 max-w-2xl text-sm text-gray-500">
-                                                <i class="fa fa-calendar-check-o mr-2 w-2 h-2"></i><span id="selected-date"></span>
-                                            </p>
-                                            <p class="mt-1 max-w-2xl text-sm text-gray-500">
-                                                <a class="text-indigo-600" href="{{ url_for('user.events') }}"><u>Choose a different event type</u></a>
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div class="pl-4 pr-4 pb-5">
-                                        {% if current_user.is_authenticated %}
-                                            {% set name = current_user.name %}
-                                            {% set email = current_user.email %}
-                                        {% else %}
-                                            {% set name = '' %}
-                                            {% set email = '' %}
-                                        {% endif %}
-                                        <form class="space-y-8 divide-y divide-gray-200" method="post" action="{{ url_for('user.confirm_event') }}">
-                                          <div class="space-y-8 divide-y divide-gray-200 sm:space-y-5">
-                                            <div>
-                                              <div class="space-y-6 sm:space-y-5">
-                                                <div class="sm:grid sm:grid-cols-4 sm:gap-4 sm:items-start sm:pt-5">
-                                                  <label for="name" class="block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">
-                                                    Name<span style="color:red">*</span>
-                                                  </label>
-                                                  <div class="mt-1 sm:mt-0 sm:col-span-3">
-                                                    <input required type="text" name="name" id="name" value="{{ name }}" autocomplete="name" class="max-w-lg block w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:max-w-xs sm:text-sm border-gray-300 rounded-md">
-                                                  </div>
-                                                </div>
+                <!-- Spacer -->
+                <div class="flex flex-col mb-5 col-span-1"></div>
 
-                                                <div class="sm:grid sm:grid-cols-4 sm:gap-4 sm:items-start sm:border-t sm:border-gray-200 sm:pt-5">
-                                                  <label for="email" class="block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">
-                                                    Email address<span style="color:red">*</span>
-                                                  </label>
-                                                  <div class="mt-1 sm:mt-0 sm:col-span-3">
-                                                    <input required id="email" name="email" type="email" value="{{ email }}" autocomplete="email" class="block max-w-lg w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border-gray-300 rounded-md">
-                                                  </div>
-                                                </div>
-
-                                                <div class="sm:grid sm:grid-cols-4 sm:gap-4 sm:items-start sm:border-t sm:border-gray-200 sm:pt-5">
-                                                  <label for="zoom" class="text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">
-                                                    <img class="mr-2" src="http://assets.stickpng.com/thumbs/5e8ce318664eae0004085461.png" style="display:inline" width="17px" height="17px" />Zoom Link
-                                                  </label>
-                                                  <div class="mt-1 sm:mt-0 sm:col-span-3">
-                                                    <input id="zoom" name="zoom" type="text" autocomplete="zoom" class="block max-w-lg w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border-gray-300 rounded-md">
-                                                  </div>
-                                                </div>
-
-                                                <div class="sm:grid sm:grid-cols-4 sm:gap-4 sm:items-start sm:border-t sm:border-gray-200 sm:pt-5">
-                                                  <label for="about" class="block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">
-                                                    Notes
-                                                  </label>
-                                                  <div class="mt-1 sm:mt-0 sm:col-span-3">
-                                                    <textarea id="notes" name="notes" rows="7" style="resize:none;" class="max-w-lg shadow-sm block w-full focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border-gray-300 rounded-md"></textarea>
-                                                    <p class="mt-2 text-sm text-gray-500">Enter any notes for this meeting.</p>
-                                                  </div>
-                                                </div>
-                                                <input required type="hidden" id="datetime" name="datetime" />
-                                                <input required type="hidden" id="date" name="date" />
-                                                <input required type="hidden" id="start-time" name="start-time" />
-                                                <input required type="hidden" id="tz-offset" name="tz-offset" />
-                                                <input required type="hidden" id="event-type-id" name="event-type-id" value="{{ event_type.event_type_id }}" />
-                                                <input required type="hidden" id="duration-minutes" name="duration-minutes" value="{{ event_type.duration_minutes }}" />
-                                              </div>
-                                            </div>
-                                          </div>
-
-                                          <div class="pt-5">
-                                            <div class="flex justify-end">
-                                              <button onclick="Reload();" type="button" class="bg-white py-2 px-4 border border-gray-300 rounded-full shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                                                Cancel
-                                              </button>
-                                              <button type="submit" class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-full text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                                                Confirm meeting
-                                              </button>
-                                            </div>
-                                          </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
             <!-- /End replace -->
         </div>
@@ -270,29 +240,6 @@
         }, 4000);
     }
 
-    function SearchProducts(e) {
-        var input = '';
-        input += e.value;
-
-        var product_rows = document.getElementsByClassName('product-row');
-        document.getElementById('search-term').innerText = input;
-
-        for (var i = 0; i < product_rows.length; i++) {
-            var item = product_rows[i];
-            if (item.textContent.toLowerCase().includes(input.toLowerCase()) === false) {
-                item.style.display = 'none';
-            } else {
-                item.style.display = '';
-            }
-        }
-
-        if (input) {
-            document.getElementById('search-results').style.display = '';
-        } else {
-            document.getElementById('search-results').style.display = 'none';
-        }
-    }
-
     function Reload(){
         location.reload();
     }
@@ -301,11 +248,7 @@
 <!-- Pickers -->
 <!-- Availability -->
 <script>
-    let interval = 30;
-
-    if (!(typeof '{{ event_type.duration_minutes }}' === 'undefined'))
-        interval = parseInt('{{ event_type.duration_minutes }}');
-    let myHours = [generateTimes(interval)];
+    let myHours = [generateTimes(15)];
 
     let d = new Date();
 
@@ -335,9 +278,7 @@
         let h = String((date.getHours())).length === 1 ? '0' + date.getHours() : date.getHours();
         let m = String((date.getMinutes())).length === 1 ? '0' + date.getMinutes() : date.getMinutes();
         let t = h + ':' + m;
-        let tz = moment(date).format('Z')
-
-        //alert(dt + '\n' + d + '\n' + t + '\n' + tz);
+        let tz = moment(date).format('Z');
 
         document.getElementById('datetime').value = dt;
         document.getElementById('date').value = d;

@@ -5,9 +5,9 @@ from app.extensions import db
 from app.blueprints.base.functions import generate_id
 from app.blueprints.user.models.user import User
 from app.blueprints.shopify.models.plan import Plan
-from app.blueprints.calendar.models.event import Event
 from app.blueprints.calendar.models.calendar import Calendar
 from app.blueprints.calendar.models.event_type import EventType
+from app.blueprints.calendar.models.event import Event
 
 # Create an app context for the database connection.
 app = create_app()
@@ -91,15 +91,23 @@ def seed_events():
 
     event_type_30 = {
         'user_id': u.id,
-        'title': '30 minute meeting',
-        'description': 'A meeting that will only last 30 minutes',
+        'title': 'Standard 30 minute meeting',
+        'description': 'This is the standard length, 30-minute meeting. Not too long, not too short.',
         'duration_minutes': 30
     }
 
     event_type_60 = {
         'user_id': u.id,
         'title': '60 minute meeting',
-        'description': 'A meeting that will last an hour',
+        'description': 'A meeting that\'s a bit longer. You\'re starting to get bored. When will it end?',
+        'duration_minutes': 60,
+        'active': False
+    }
+
+    event_type_15 = {
+        'user_id': u.id,
+        'title': 'A short meeting (15 minutes)',
+        'description': 'This is a short, quick chat that is only supposed to take 15 minutes. Will it?',
         'duration_minutes': 60,
         'active': False
     }
@@ -110,13 +118,7 @@ def seed_events():
     e_30.save()
     e_60.save()
 
-    event = {
-        'user_id': u.id,
-        'calendar_id': c.calendar_id,
-        'event_type_id': e_30.event_type_id
-    }
-
-    return Event(**event).save()
+    return EventType(**event_type_15).save()
 
 
 @click.command()

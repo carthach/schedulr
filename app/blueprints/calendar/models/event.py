@@ -1,7 +1,7 @@
 from sqlalchemy import or_, exists
 import string
 import random
-
+from app.blueprints.calendar.models.calendar import Calendar
 from lib.util_sqlalchemy import ResourceMixin, AwareDateTime
 from app.extensions import db
 
@@ -12,25 +12,32 @@ class Event(ResourceMixin, db.Model):
     # Objects.
     id = db.Column(db.Integer, primary_key=True)
     event_id = db.Column(db.BigInteger, unique=True, index=True, nullable=False)
-    event_title = db.Column(db.String(255), unique=False, index=True)
-    event_description = db.Column(db.String, unique=False, index=True)
-    event_start_time = db.Column(AwareDateTime())
-    event_duration_minutes = db.Column(db.Integer)
+    requester_name = db.Column(db.String(255), unique=False, index=True)
+    requester_email = db.Column(db.String(255), unique=False, index=True)
+    notes = db.Column(db.String, unique=False, index=True)
+    zoom = db.Column(db.String, unique=False, index=True)
+    event_datetime = db.Column(AwareDateTime())
+    date = db.Column(db.String(255))
+    start_time = db.Column(db.Time)
+    tz_offset = db.Column(db.String(255))
+    duration_minutes = db.Column(db.Integer)
 
     # Relationships.
     user_id = db.Column(db.Integer, db.ForeignKey('users.id', onupdate='CASCADE', ondelete='CASCADE'),
                         index=True, nullable=True, primary_key=False, unique=False)
-    calendar_id = db.Column(db.BigInteger, db.ForeignKey('calendars.calendar_id', onupdate='CASCADE', ondelete='CASCADE'),
+    calendar_id = db.Column(db.BigInteger, db.ForeignKey(Calendar.calendar_id, onupdate='CASCADE', ondelete='CASCADE'),
                         index=True, nullable=True, primary_key=False, unique=False)
     event_type_id = db.Column(db.BigInteger, db.ForeignKey('event_types.event_type_id', onupdate='CASCADE', ondelete='CASCADE'),
                         index=True, nullable=True, primary_key=False, unique=False)
 
-    def __init__(self, user_id, calendar_id, **kwargs):
+    def __init__(self, user_id, calendar_id=None, **kwargs):
         # Call Flask-SQLAlchemy's constructor.
         super(Event, self).__init__(**kwargs)
         self.event_id = Event.generate_id()
         self.user_id = user_id
-        self.calendar_id = calendar_id
+
+        if calendar_id is not None:
+            self.calendar_id = calendar_id
 
     def as_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
