@@ -1,9 +1,10 @@
 import re
 import sys
 import fileinput
+import webbrowser
 
 
-def r(filename):
+def r(filename, open=False):
     if len(sys.argv) > 1:
         ngrok = sys.argv[1]
         for line in fileinput.input(filename, inplace=True):
@@ -12,6 +13,18 @@ def r(filename):
                 line = re.sub(regex, ngrok, line)
             sys.stdout.write(line)
 
+        if open:
+            open_browser(ngrok)
+
+
+def open_browser(url):
+    url = 'https://' + url + '.ngrok.io/'
+
+    # Windows
+    chrome_path = 'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe %s'
+
+    webbrowser.get(chrome_path).open(url)
+
 
 r('app/app.py')
-r('instance/settings.py')
+r('instance/settings.py', True)
