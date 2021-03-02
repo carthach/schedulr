@@ -1,1 +1,1 @@
-from app.blueprints.base.views import base
+from app.blueprints.calendar.views import calendar

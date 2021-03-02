@@ -17,13 +17,13 @@
                         <a href="{{ url_for('user.calendar') }}"
                            class="px-3 py-2 rounded-md text-sm font-medium {% if page == 'calendar' %}text-white bg-indigo-800{% else %}text-indigo-200 hover:text-white hover:bg-indigo-600{% endif %} focus:outline-none focus:text-white focus:bg-indigo-600">Calendar</a>
                         <a href="{{ url_for('user.availability') }}"
-                           class="px-3 py-2 rounded-md text-sm font-medium {% if page == 'availability' %}text-white bg-indigo-800{% else %}text-indigo-200 hover:text-white hover:bg-indigo-600{% endif %} focus:outline-none focus:text-white focus:bg-indigo-600">Availability</a>
+                           class="ml-2 px-3 py-2 rounded-md text-sm font-medium {% if page == 'availability' %}text-white bg-indigo-800{% else %}text-indigo-200 hover:text-white hover:bg-indigo-600{% endif %} focus:outline-none focus:text-white focus:bg-indigo-600">Availability</a>
                         <a href="{{ url_for('user.events') }}"
                            class="ml-2 px-3 py-2 rounded-md text-sm font-medium {% if page == 'events' %}text-white bg-indigo-800{% else %}text-indigo-200 hover:text-white hover:bg-indigo-600{% endif %} focus:outline-none focus:text-white focus:bg-indigo-600">Events</a>
                         <a href="{{ url_for('user.settings') }}"
                            class="ml-2 px-3 py-2 rounded-md text-sm font-medium {% if page == 'settings' %}text-white bg-indigo-800{% else %}text-indigo-200 hover:text-white hover:bg-indigo-600{% endif %} focus:outline-none focus:text-white focus:bg-indigo-600">Settings</a>
-                        <a href="{{ url_for('user.create_event_type') }}"
-                           class="ml-5 px-3 py-2 rounded-md text-sm font-medium text-indigo-700 bg-white hover:text-white hover:bg-indigo-600 focus:outline-none focus:text-white focus:bg-indigo-600">Create</a>
+                        <a href="{{ url_for('user.get_calendars') }}"
+                           class="ml-5 px-3 py-2 rounded-md text-sm font-medium text-indigo-700 bg-white hover:text-white hover:bg-indigo-600 focus:outline-none focus:text-white focus:bg-indigo-600">Get Calendars</a>
                     </div>
                 </div>
             </div>

@@ -1,10 +1,28 @@
-import string
-import random
-import pytz
-import names
-import traceback
-from datetime import datetime as dt
-from app.extensions import db
-from sqlalchemy import exists, and_
-from app.blueprints.page.date import get_year_date_string
-from app.blueprints.user.models.user import User
+from app.blueprints.calendar.google.calendar import create_calendar_service
+
+
+def get_availability(calendars):
+    availability = list()
+    return availability
+
+
+def get_calendar_list(token, refresh):
+    calendars = list()
+
+    service = create_calendar_service(token, refresh)
+
+    calendar_list = service.calendarList().list().execute()
+    for cal in calendar_list['items']:
+        calendars.append({'name': cal['summary'],
+                          'id': cal['id']})
+
+    return calendars
+
+
+def get_events(calendar):
+    events = list()
+    return events
+
+
+def create_event(calendar):
+    return

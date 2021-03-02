@@ -17,8 +17,8 @@ from app.blueprints.admin import admin
 from app.blueprints.page import page
 from app.blueprints.contact import contact
 from app.blueprints.user import user
-from app.blueprints.shopify import shopify_bp
 from app.blueprints.base import base
+from app.blueprints.calendar import calendar
 from app.blueprints.api import api
 from app.blueprints.api.functions import deserialize_token
 from app.blueprints.billing import billing
@@ -92,7 +92,7 @@ def create_app(settings_override=None):
         app.config['REMEMBER_COOKIE_DOMAIN'] = '.schedulr.io'
     else:
         # Set the app server name
-        SERVER_NAME = '8717e52d05b8.ngrok.io'
+        SERVER_NAME = '98aae84f3da2.ngrok.io'
         app.config['SERVER_NAME'] = SERVER_NAME
         app.config['REMEMBER_COOKIE_DOMAIN'] = '.' + SERVER_NAME
 
@@ -121,8 +121,8 @@ def create_app(settings_override=None):
     app.register_blueprint(page)
     app.register_blueprint(contact)
     app.register_blueprint(user)
-    app.register_blueprint(shopify_bp)
     app.register_blueprint(base)
+    app.register_blueprint(calendar)
     app.register_blueprint(api)
     app.register_blueprint(billing)
     app.register_blueprint(errors)

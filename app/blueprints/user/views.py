@@ -25,9 +25,12 @@ from flask_cors import cross_origin
 from flask_paginate import Pagination, get_page_args
 from lib.safe_next_url import safe_next_url
 from app.blueprints.user.decorators import anonymous_required
-from app.blueprints.shopify.functions import get_all_products, update_sync, get_product_count, get_product_by_id
+
+# Functions
+from app.blueprints.calendar.functions import get_availability, get_calendar_list
+
+# Models
 from app.blueprints.user.models.user import User
-from app.blueprints.page.date import get_timezone
 from app.blueprints.calendar.models.calendar import Calendar
 from app.blueprints.calendar.models.event_type import EventType
 from app.blueprints.calendar.models.event import Event
@@ -44,7 +47,6 @@ from app.blueprints.user.forms import (
 from app.extensions import cache, csrf, timeout, db
 from importlib import import_module
 from sqlalchemy import or_, and_, exists, inspect, func
-from app.blueprints.base.functions import is_admin
 
 user = Blueprint('user', __name__, template_folder='templates')
 use_username = False
@@ -250,7 +252,7 @@ def update_credentials():
 
 
 """
-Calendar
+Calendars
 """
 
 
@@ -284,12 +286,34 @@ def calendar(event_id=None, username=None, tag=None):
 @login_required
 @cross_origin()
 def availability():
-    from app.blueprints.calendar.google.google import connect
+    a = Calendar.query.filter(Calendar.user_id == current_user.id).all()
+    accounts = [{'account': x.email, 'calendars': get_calendar_list(x.token, x.refresh_token)} for x in a]
 
-    connect()
-    calendars = Calendar.query.filter(Calendar.user_id == current_user.id).all()
-    return render_template('user/availability.html', current_user=current_user, calendars=calendars)
+    # availability = get_availability(calendars)
 
+    return render_template('user/availability.html', current_user=current_user, accounts=accounts)
+
+
+@user.route('/get_calendars/', methods=['GET', 'POST'])
+@csrf.exempt
+@cross_origin()
+def get_calendars():
+    accounts = Calendar.query.filter(Calendar.user_id == current_user.id).all()
+    for account in accounts:
+        calendars = get_calendar_list(account.token, account.refresh_token)
+
+    return redirect(url_for('user.availability'))
+
+
+@user.route('/add_calendar/', methods=['GET', 'POST'])
+@csrf.exempt
+@login_required
+@cross_origin()
+def add_calendar():
+    from app.blueprints.calendar.google.calendar import authorize
+
+    auth_url = authorize()
+    return redirect(auth_url)
 
 """
 Events
@@ -364,6 +388,7 @@ def create_event_type():
         return render_template('user/event_type.html', current_user=current_user, event_type=event_type)
     else:
         return redirect(url_for('user.events'))
+
 
 
 @user.route('/save_event_type', methods=['GET', 'POST'])

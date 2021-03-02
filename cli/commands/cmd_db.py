@@ -2,12 +2,9 @@ import click
 from sqlalchemy_utils import database_exists, create_database
 from app.app import create_app
 from app.extensions import db
-from app.blueprints.base.functions import generate_id
 from app.blueprints.user.models.user import User
 from app.blueprints.shopify.models.plan import Plan
-from app.blueprints.calendar.models.calendar import Calendar
 from app.blueprints.calendar.models.event_type import EventType
-from app.blueprints.calendar.models.event import Event
 
 # Create an app context for the database connection.
 app = create_app()
@@ -81,13 +78,6 @@ def seed_events():
     """
 
     u = User.query.filter(User.email == app.config['SEED_OWNER_EMAIL']).scalar()
-
-    calendar = {
-        'user_id': u.id
-    }
-
-    c = Calendar(**calendar)
-    c.save()
 
     event_type_30 = {
         'user_id': u.id,

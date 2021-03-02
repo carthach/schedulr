@@ -12,6 +12,10 @@ class Calendar(ResourceMixin, db.Model):
     # Objects.
     id = db.Column(db.Integer, primary_key=True)
     calendar_id = db.Column(db.BigInteger, unique=True, index=True, nullable=False)
+    account_id = db.Column(db.String(255), unique=True, index=True, nullable=True)
+    email = db.Column(db.String(255), unique=True, index=True, nullable=False, server_default='')
+    token = db.Column(db.String(255), nullable=True)
+    refresh_token = db.Column(db.String(255), nullable=True)
     active = db.Column('is_active', db.Boolean(), nullable=False, server_default='1')
 
     # Relationships.
