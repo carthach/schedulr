@@ -50,9 +50,10 @@ function generateTimes(interval, military=false, availability=[]) {
 }
 
 
-function generate(startTime, interval, period) {
-    var d = moment.utc(moment("23:59:59", "HH:mm:ss").diff(moment(startTime, "HH:mm:ss"))).format("mm");
-    const periodsInADay = moment.duration(d, 'minute').as(period);
+function generateAvailability(startTime, interval) {
+    const period = 'm';
+    let d = moment("23:59:59", "HH:mm:ss").diff(moment(startTime, "HH:mm:ss"), 'minutes');
+    const periodsInADay = moment.duration(d, 'minutes').as(period);
 
     const timeLabels = [];
     const startTimeMoment = moment(startTime, 'hh:mm');
@@ -60,6 +61,5 @@ function generate(startTime, interval, period) {
         startTimeMoment.add(i === 0 ? 0 : interval, period);
         timeLabels.push(startTimeMoment.format('hh:mm a'));
     }
-    alert(timeLabels);
-    return timeLabels;
+    return [timeLabels];
 }
