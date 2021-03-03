@@ -1,12 +1,14 @@
+import requests
 import google_auth_oauthlib.flow
-from flask import request, current_app
+from flask import request, current_app, redirect, url_for
 from flask_login import current_user
 from app.blueprints.calendar.models.calendar import Calendar
 from app.blueprints.base.functions import print_traceback
 from googleapiclient.discovery import build
+from google.auth.transport.requests import Request
 import google.oauth2.credentials
 from app.extensions import db
-from sqlalchemy import exists
+from sqlalchemy import exists, and_
 
 
 SCOPES = ['https://www.googleapis.com/auth/calendar', 'https://www.googleapis.com/auth/calendar.events', 'openid',
@@ -23,7 +25,7 @@ def authorize():
         # Enable offline access so that you can refresh an access token without
         # re-prompting the user for permission. Recommended for web server apps.
         access_type='offline',
-        prompt='select_account',
+        prompt='consent',
         # Enable incremental authorization. Recommended as a best practice.
         include_granted_scopes='false')
 
@@ -46,22 +48,35 @@ def get_credentials():
     info = get_user_info(credentials)
 
     try:
+        # If credentials don't exist, return an error
         if not credentials:
             return False
 
-        # The credentials already exist in the db, so this account has already been added.
-        if db.session.query(exists().where(Calendar.account_id == info['id'])).scalar():
-            return 1
-        else:
-            calendar = Calendar()
-            calendar.user_id = current_user.id
-            calendar.account_id = info['id']
-            calendar.email = info['email']
-            calendar.token = credentials.token,
-            calendar.refresh_token = credentials.refresh_token
-            calendar.save()
+        # There is a refresh token in the request, so this is a new access (or refreshed access)
+        if credentials.refresh_token is not None:
+            # Refresh the credentials if they're expired
+            if credentials.expired:
+                credentials.refresh(Request())
 
-        return True
+            # This user is already in the database, so we are refreshing the access token.
+            if db.session.query(exists().where(Calendar.account_id == info['id'])).scalar():
+                calendar = Calendar.query.filter(Calendar.account_id == info['id']).scalar()
+                calendar.token = credentials.token
+                calendar.refresh_token = credentials.refresh_token
+                calendar.save()
+            else:
+                calendar = Calendar()
+                calendar.user_id = current_user.id
+                calendar.account_id = info['id']
+                calendar.email = info['email']
+                calendar.token = credentials.token,
+                calendar.refresh_token = credentials.refresh_token
+                calendar.save()
+
+            return True
+        else:
+            # Otherwise the account is already connected
+            pass# return 1
 
     except Exception as e:
         print_traceback(e)
@@ -91,6 +106,34 @@ def create_calendar_service(token, refresh):
     cal = build('calendar', 'v3', credentials=credentials)
 
     return cal
+
+
+def refresh_token(refresh):
+    try:
+        url = 'https://www.googleapis.com/oauth2/v4/token'
+
+        data = {
+            'client_id': current_app.config.get('GOOGLE_CLIENT_ID'),
+            'client_secret': current_app.config.get('GOOGLE_CLIENT_SECRET'),
+            'grant_type': 'refresh_token',
+            'refresh_token': refresh
+        }
+
+        r = requests.post(url, data=data)
+
+        if r.status_code == 200:
+            return 0
+        else:
+            # Delete the calendar if unable to refresh the token.
+            Calendar.query.filter(Calendar.refresh_token == refresh).scalar().delete()
+            return -1
+
+    except Exception as e:
+        print_traceback(e)
+
+        # Delete the calendar if unable to refresh the token.
+        Calendar.query.filter(Calendar.refresh_token == refresh).scalar().delete()
+        return -1
 
 
 def get_service(api, version, credentials):

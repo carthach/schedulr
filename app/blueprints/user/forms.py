@@ -18,20 +18,6 @@ class LoginForm(Form):
     # remember = BooleanField('Stay signed in')
 
 
-class LoginFormExistingStore(Form):
-    next = HiddenField()
-    url = StringField('Store URL')
-    identity = StringField('Email',
-                           [DataRequired(), Length(3, 254)])
-
-    password = PasswordField('Enter your password', [DataRequired(), Length(8, 128)])
-
-    def __init__(self, *args, **kwargs):
-        super(LoginFormExistingStore, self).__init__(*args, **kwargs)
-        read_only(self.url)
-        read_only(self.identity)
-
-
 class BeginPasswordResetForm(Form):
     identity = StringField('Username or email',
                            [DataRequired(),
@@ -49,9 +35,10 @@ class SignupForm(ModelForm):
         DataRequired()
     ])
 
-    # username = StringField(validators=[
-    #     Unique(User.username, get_session=lambda: db.session, message='This username is already taken!')
-    # ])
+    username = StringField(validators=[
+        Unique(User.username, get_session=lambda: db.session, message='This username is already taken!'),
+        Regexp('^\w+$', message="Username must contain only letters or numbers."),
+    ])
 
     email = EmailField(validators=[
         DataRequired(),

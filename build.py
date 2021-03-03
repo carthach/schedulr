@@ -1,2 +1,6 @@
 import os
-os.system("docker-compose up --build")
+
+try:
+    os.system("docker-compose up --build")
+except KeyboardInterrupt:
+    pass

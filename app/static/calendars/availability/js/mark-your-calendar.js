@@ -107,9 +107,13 @@
                         </a>
                     `;
                 });
+                let display = '\'\'';
+                if (i !== 0) {
+                    display = 'none';
+                }
 
                 tmp += `
-                    <div class="myc-day-time-container" id="myc-day-time-container-` + i + `">
+                    <div class="myc-day-time-container" id="myc-day-time-container-` + i + `" style="display:` + display + `">
                         ` + tmpAvailTimes + `
                         <div style="clear:both;"></div>
                     </div>
@@ -127,6 +131,14 @@
         this.setStartDate = function(date) {
             settings.startDate = date;
             render();
+        }
+
+        this.getStartDateTime = function() {
+            return moment(settings.startDate).format('YYYY-MM-DDT00:00:00.000Z');
+        }
+
+        this.getStartDate = function() {
+            return moment(settings.startDate).format('YYYY-MM-DD');
         }
 
         // clear

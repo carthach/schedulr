@@ -27,7 +27,7 @@ from lib.safe_next_url import safe_next_url
 from app.blueprints.user.decorators import anonymous_required
 
 # Functions
-from app.blueprints.calendar.functions import get_availability, get_calendar_list
+from app.blueprints.calendar.functions import get_availability, get_calendar_list, get_busy_times
 
 # Models
 from app.blueprints.user.models.user import User
@@ -38,7 +38,6 @@ from app.blueprints.shopify.models.plan import Plan
 from app.blueprints.user.forms import (
     SignupForm,
     LoginForm,
-    LoginFormExistingStore,
     BeginPasswordResetForm,
     PasswordResetForm,
     WelcomeForm,
@@ -62,75 +61,40 @@ User
 @anonymous_required()
 @csrf.exempt
 def login():
+    form = LoginForm(next=request.args.get('next'))
 
-    # This is when setting up a destination store, and the user already has an account with a source store
-    if 'shopify_url' in session and session['shopify_url'] is not None and 'shopify_email' in session and session['shopify_email'] is not None:
-        form = LoginFormExistingStore()
-        form.url.data = session['shopify_url']
-        form.identity.data = session['shopify_email']
+    if form.validate_on_submit():
+        u = User.find_by_identity(request.form.get('identity'))
 
-        if form.validate_on_submit():
-            u = User.find_by_identity(request.form.get('identity'))
+        if u and u.is_active() and u.authenticated(password=request.form.get('password')):
 
-            if u and u.is_active() and u.authenticated(password=request.form.get('password')):
+            if login_user(u, remember=True) and u.is_active():
+                if current_user.role == 'admin':
+                    return redirect(url_for('admin.dashboard'))
 
-                if login_user(u, remember=True) and u.is_active():
+                u.update_activity_tracking(request.remote_addr)
 
-                    u.update_activity_tracking(request.remote_addr)
+                next_url = request.form.get('next')
 
-                    next_url = request.form.get('next')
+                if next_url == url_for('user.login') or next_url == '' or next_url is None:
+                    # Take them to the settings page
+                    next_url = url_for('user.calendar')
 
-                    if next_url == url_for('user.login') or next_url == '' or next_url is None:
-                        # Take them to the settings page
-                        next_url = url_for('user.start', shop_url=session['shopify_url'])
+                if next_url:
+                    return redirect(safe_next_url(next_url), code=307)
 
-                    if next_url:
-                        return redirect(safe_next_url(next_url), code=307)
-                else:
-                    flash('This account has been disabled.', 'error')
+                if current_user.role == 'admin':
+                    return redirect(url_for('admin.dashboard'))
             else:
-                flash('Your username/email or password is incorrect.', 'error')
-
+                flash('This account has been disabled.', 'error')
         else:
-            if len(form.errors) > 0:
-                print(form.errors)
+            flash('Your username/email or password is incorrect.', 'error')
 
-        return render_template('user/login_existing_store.html', form=form, url=session['shopify_url'])
     else:
-        form = LoginForm(next=request.args.get('next'))
+        if len(form.errors) > 0:
+            print(form.errors)
 
-        if form.validate_on_submit():
-            u = User.find_by_identity(request.form.get('identity'))
-
-            if u and u.is_active() and u.authenticated(password=request.form.get('password')):
-
-                if login_user(u, remember=True) and u.is_active():
-                    if current_user.role == 'admin':
-                        return redirect(url_for('admin.dashboard'))
-
-                    u.update_activity_tracking(request.remote_addr)
-
-                    next_url = request.form.get('next')
-
-                    if next_url == url_for('user.login') or next_url == '' or next_url is None:
-                        # Take them to the settings page
-                        next_url = url_for('user.calendar')
-
-                    if next_url:
-                        return redirect(safe_next_url(next_url), code=307)
-
-                    if current_user.role == 'admin':
-                        return redirect(url_for('admin.dashboard'))
-                else:
-                    flash('This account has been disabled.', 'error')
-            else:
-                flash('Your username/email or password is incorrect.', 'error')
-
-        else:
-            if len(form.errors) > 0:
-                print(form.errors)
-
-        return render_template('user/login.html', form=form)
+    return render_template('user/login.html', form=form)
 
 
 '''
@@ -146,10 +110,7 @@ def signup():
     form = SignupForm()
 
     try:
-        print(request.args)
-        print(form.data)
         if form.validate_on_submit():
-            print("Form validated")
             if db.session.query(exists().where(User.email == request.form.get('email'))).scalar():
                 flash(Markup("There is already an account using this email. Please use another or <a href='" + url_for(
                     'user.login') + "'><span class='text-indigo-700'><u>login</span></u></a>."), category='error')
@@ -174,7 +135,6 @@ def signup():
                 # Log the user in
                 flash("You've successfully signed up!", 'success')
                 return redirect(url_for('user.events'))
-        print("Form NOT validated")
     except Exception as e:
         print_traceback(e)
 
@@ -287,11 +247,28 @@ def calendar(event_id=None, username=None, tag=None):
 @cross_origin()
 def availability():
     a = Calendar.query.filter(Calendar.user_id == current_user.id).all()
-    accounts = [{'account': x.email, 'calendars': get_calendar_list(x.token, x.refresh_token)} for x in a]
-
+    accounts = [{'id': x.account_id, 'account': x.email, 'calendars': get_calendar_list(x.token, x.refresh_token)} for x in a]
+    if any(d['calendars'] == -1 for d in accounts):
+        flash('There was a problem getting calendars. Please try again.', 'error')
+        return redirect(url_for('user.availability'))
     # availability = get_availability(calendars)
 
     return render_template('user/availability.html', current_user=current_user, accounts=accounts)
+
+
+@user.route('/update_availability/', methods=['POST'])
+@csrf.exempt
+@login_required
+@cross_origin()
+def update_availability():
+    if request.method == 'POST':
+        calendars = json.loads(request.form.get('calendar_ids'))
+        date = request.form['date']
+
+        busy = get_busy_times(calendars, date)
+
+        return jsonify({'success': 'Success'})
+    return jsonify({'error': 'Error'})
 
 
 @user.route('/get_calendars/', methods=['GET', 'POST'])

@@ -11,10 +11,10 @@ def google_auth():
 
     result = get_credentials()
 
-    if result == 1:
-        flash("This account has already been added.", 'warning')
-    elif result:
+    if result:
         flash("Successfully added your calendar.", 'success')
+    elif result == 1:
+        flash("This account has already been connected.", 'warning')
     else:
         flash("There was a problem adding your calendar. Please try again.", 'error')
 

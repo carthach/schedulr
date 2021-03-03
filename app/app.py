@@ -92,7 +92,7 @@ def create_app(settings_override=None):
         app.config['REMEMBER_COOKIE_DOMAIN'] = '.schedulr.io'
     else:
         # Set the app server name
-        SERVER_NAME = '98aae84f3da2.ngrok.io'
+        SERVER_NAME = 'bbae40d9de21.ngrok.io'
         app.config['SERVER_NAME'] = SERVER_NAME
         app.config['REMEMBER_COOKIE_DOMAIN'] = '.' + SERVER_NAME
 

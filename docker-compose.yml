@@ -35,6 +35,7 @@ services:
       - '.:/schedulr'
     ports:
       - '5000:5000'
+    restart: on-failure
 
   celery:
     build: .

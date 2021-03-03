@@ -2,9 +2,9 @@
 {%- macro field_label(f) -%}
     <label for="{{ f.id }}">
         {%- if f.flags.required -%}
-            <h5>{{ f.label.text }}</h5>
+            <h5>{{ f.label.text }}<span style="color:red"> *</span></h5>
         {%- else %}
-            {{ f.label.text }}
+            <h5>{{ f.label.text }}</h5>
         {%- endif %}
     </label>
 {%- endmacro -%}

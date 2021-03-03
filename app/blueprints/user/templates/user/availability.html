@@ -121,42 +121,89 @@
                             <div>
                                 <h1 class="mb-5 text-xl font-w700 text-gray-900">My Connected Calendars</h1>
                                 <!-- This example requires Tailwind CSS v2.0+ -->
-                                <ul class="grid grid-cols-1 gap-6 sm:grid-cols-1 lg:grid-cols-1">
-                                    <a href="{{ url_for('user.add_calendar') }}" class="col-span-1 bg-white rounded-lg shadow divide-y divide-gray-200">
-                                        <div class="w-full flex items-center justify-between p-6 space-x-6">
-                                            <div class="flex-1 truncate">
-                                                <div class="flex items-center space-x-3">
-                                                    <h3 class="text-indigo-600 text-sm font-medium truncate"><i class="fa fa-plus mr-2"></i><u>Connect a new account</u></h3>
-                                                </div>
+                                <a href="{{ url_for('user.add_calendar') }}" class="col-span-1">
+                                    <div class=" mb-5 w-full flex items-center justify-between p-6 space-x-6 bg-white rounded-lg shadow divide-y divide-gray-200">
+                                        <div class="flex-1 truncate">
+                                            <div class="flex items-center space-x-3">
+                                                <h3 class="text-indigo-600 text-sm font-medium truncate"><i class="fa fa-plus mr-2"></i><u>Connect a new account</u></h3>
                                             </div>
                                         </div>
-                                    </a>
+                                    </div>
+                                </a>
+
+                                <!-- This example requires Tailwind CSS v2.0+ -->
+                                <nav class="relative h-full overflow-y-auto pb-5" aria-label="Directory" style="max-height:550px;">
+                                    {% if accounts %}
+                                        {% for account in accounts * 10 %}
+                                              <div class="z-10 sticky top-0 border-t border-b border-gray-200 bg-gray-50 px-2 py-1 text-sm font-medium text-gray-500">
+                                                    <div class="flex items-center space-x-3">
+                                                        <img class="mr-3 w-5 h-5 bg-gray-300 rounded-full flex-shrink-0" src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Google_Calendar_icon_%282020%29.svg/1200px-Google_Calendar_icon_%282020%29.svg.png" alt="">{{ account.account }}
+                                                    </div>
+                                              </div>
+                                              <ul class="relative z-0 divide-y divide-gray-200">
+                                              {% for calendar in account.calendars %}
+                                                    <li class="bg-white">
+                                                      <div id="" class="relative px-6 py-2 flex items-center space-x-3 hover:bg-gray-50 {#focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500#}">
+                                                        <div class="flex-shrink-0">
+                                                            <div class="flex items-center h-5">
+                                                                <input id="{{ calendar.id }}" name="calendar-checkbox" data-account="{{ account.id }}" style="z-index:999" type="checkbox"
+                                                                       class="cursor-pointer focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                                                                onchange="UpdateAvailability();">
+                                                            </div>
+                                                            <label for="{{ calendar.id }}" class="font-medium text-gray-700"></label>
+                                                        </div>
+                                                        <div class="flex-1 min-w-0">
+                                                          <div class="focus:outline-none">
+                                                            <!-- Extend touch target to entire panel -->
+                                                            <span class="absolute inset-0" aria-hidden="true"></span>
+                                                            <p class="text-sm font-medium text-gray-900">
+                                                              {{ calendar.name }}
+                                                            </p>
+                                                            {#<p class="text-sm text-gray-500 truncate">
+                                                              Co-Founder / CEO
+                                                            </p>#}
+                                                          </div>
+                                                        </div>
+                                                      </div>
+                                                    </li>
+                                              {% endfor %}
+                                              </ul>
+                                        {% endfor %}
+                                    {% endif %}
+                                </nav>
+
+                                {#<ul class="grid grid-cols-1 gap-6 sm:grid-cols-1 lg:grid-cols-1 pt-2" style="max-height:550px;overflow-y:auto;">
                                     {% for account in accounts %}
                                         {% set color = 'gray' %}
                                         {% set active = 'Inactive' %}
-                                        {#{% if calendar.active %}
+                                        #}{#{% if calendar.active %}
                                             {% set color = 'green' %}
                                             {% set active = 'Active' %}
-                                        {% endif %}#}
-                                        <li class="col-span-1 bg-white rounded-lg shadow divide-y divide-gray-200">
+                                        {% endif %}#}{#
+                                        <li class="col-span-1 bg-white rounded-lg shadow divide-y divide-gray-200 {% if loop.last %}mb-5{% endif %}">
                                             <div class="w-full flex items-center justify-between p-6 space-x-6">
-                                                <div class="flex-1 truncate">
+                                                <div class="flex-1">
                                                     <div class="flex items-center space-x-3 mb-3">
                                                         <img class="w-10 h-10 bg-gray-300 rounded-full flex-shrink-0" src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Google_Calendar_icon_%282020%29.svg/1200px-Google_Calendar_icon_%282020%29.svg.png" alt="">
                                                         <h3 class="text-gray-900 text-md font-medium">{{ account.account }}</h3>
                                                     </div>
 
                                                     <!-- List the calendars -->
-                                                    {% for calendar in account.calendars %}
-                                                        <div class="relative flex items-start pl-2 pb-2">
-                                                            <div class="flex items-center h-5">
-                                                                <input id="{{ calendar.id }}" name="id" type="checkbox" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
-                                                            </div>
-                                                            <div class="ml-3 text-sm">
-                                                                <label for="{{ calendar.id }}" class="font-medium text-gray-700">{{ calendar.name }}</label>
-                                                            </div>
+                                                    {% if account.calendars %}
+                                                        <h3 class="mb-3">Please select which calendars to include in your availability:</h3>
+                                                        <div class="pt-2" style="max-height:100px;overflow-y:auto;">
+                                                            {% for calendar in account.calendars %}
+                                                                <div class="relative flex items-start pl-2 pb-2">
+                                                                    <div class="flex items-center h-5">
+                                                                        <input id="{{ calendar.id }}" name="id" type="checkbox" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
+                                                                    </div>
+                                                                    <div class="ml-3 text-sm">
+                                                                        <label for="{{ calendar.id }}" class="font-medium text-gray-700">{{ calendar.name }}</label>
+                                                                    </div>
+                                                                </div>
+                                                            {% endfor %}
                                                         </div>
-                                                    {% endfor %}
+                                                {% endif %}
                                                 </div>
                                             </div>
                                         <div>
@@ -180,7 +227,7 @@
                                         </div>
                                       </li>
                                     {% endfor %}
-                                </ul>
+                                </ul>#}
                             </div>
                         </div>
                     </div>
@@ -260,7 +307,7 @@
 <!-- Pickers -->
 <!-- Availability -->
 <script>
-    let myHours = [generateTimes(15)];
+    let myHours = generate('07:00', 15, 'm');
 
     let d = new Date();
 
@@ -316,6 +363,36 @@
         d = new Date(selectedDates);
         instance.setStartDate(d);
         render();
+    }
+
+    <!-- Update availability -->
+    function UpdateAvailability(){
+        let checkboxes = document.getElementsByName('calendar-checkbox');
+        let date = instance.getStartDate();
+        let checked = [];
+        for (let i=0; i < checkboxes.length; i++) {
+
+             if (checkboxes[i].checked) {
+                 checked.push({'id': checkboxes[i].id, 'account': checkboxes[i].dataset.account });
+             }
+        }
+
+        $.ajax({
+            url: "{{ url_for('user.update_availability') }}",
+            type: 'POST',
+            data: {'calendar_ids': JSON.stringify(checked), 'user_id': '{{ current_user.id }}', 'date': date},
+            success: function (response) {
+                if (response['success'] === true) {
+                    let dates = response['dates'];
+                    UpdatePicker(dates);
+                }
+            },
+            error: function (xhr) {
+            }
+        });
+
+        // Reload the page
+        //Reload();
     }
 
     function render() {
