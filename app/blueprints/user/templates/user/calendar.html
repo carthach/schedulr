@@ -302,10 +302,11 @@
 <!-- Availability -->
 <script>
     let interval = 30;
+    let startTime = '7:00';
 
     if (!(typeof '{{ event_type.duration_minutes }}' === 'undefined'))
         interval = parseInt('{{ event_type.duration_minutes }}');
-    let myHours = [generateTimes(interval)];
+    let myHours = generateAvailability(startTime, interval);
 
     let d = new Date();
 
