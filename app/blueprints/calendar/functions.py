@@ -7,46 +7,40 @@ from app.blueprints.calendar.models.calendar import Calendar
 from googleapiclient.errors import HttpError
 
 
-def get_availability(calendars, date):
-    busy = get_busy_times(calendars, date)
+def get_availability(accounts, date, tz):
+    busy = get_busy_times(accounts, date, tz)
+    pprint(busy)
 
     if not busy:
         return None
 
 
+def get_busy_times(accounts, date, tz):
+    time_min = date + "T00:00:00" + tz
+    time_max = date + "T23:59:59" + tz
 
-
-def get_busy_times(calendars, date):
     busy = list()
     keyfunc = lambda d: next(iter(d.values()))
-    calendars = [{'account': k, 'calendars': [{'id': j['id']} for j in v]} for k, v in
-                 itertools.groupby(sorted(calendars, key=keyfunc), key=lambda x: x['account'])]
+    accounts = [{'account': k, 'calendars': [{'id': j['id']} for j in v]} for k, v in
+                itertools.groupby(sorted(accounts, key=keyfunc), key=lambda x: x['account'])]
     try:
-        for calendar in calendars:
-            c = Calendar.query.filter(Calendar.account_id == calendar['account']).scalar()
-            service = create_calendar_service(c.token, c.refresh_token)
-            tz = service.settings().get(setting='timezone').execute()
-            tz = tz['value'] if 'value' in tz else ''
+        for account in accounts:
+            a = Calendar.query.filter(Calendar.account_id == account['account']).scalar()
+            service = create_calendar_service(a.token, a.refresh_token)
 
-            freebusy = service.freebusy().query(body=
-                                                {"timeMin": date + "T00:00:00.000Z",
-                                                 "timeMax": date + "T23:59:59.000Z",
-                                                 "timeZone": tz,
-                                                 "items": calendar['calendars']
-                                                 }).execute()
+            # Get the user's calendar time zone
+            # tz = service.settings().get(setting='timezone').execute()
 
-            pprint(freebusy)
-            # There are no busy times, so continue
-            if not (freebusy and 'calendars' in freebusy):
-                return list()
+            for calendar in account['calendars']:
+                events = service.events().list(calendarId=calendar['id'], timeZone=tz,
+                                               timeMin=time_min, timeMax=time_max,
+                                               singleEvents=True, orderBy='startTime').execute()
 
-            c = freebusy['calendars'].keys()
-            for k in c:
-                if 'busy' in freebusy['calendars'][k]:
-                    b = freebusy['calendars'][k]['busy']
-                    if len(b) > 0:
-                        for item in b:
-                            busy.append(item)
+                if events and 'items' in events:
+                    # pprint(events)
+                    for event in events['items']:
+                        if 'end' in event and 'start' in event and 'dateTime' in event['start'] and 'dateTime' in event['end']:
+                            busy.append({'start': event['start']['dateTime'].replace('T', ' '), 'end': event['end']['dateTime'].replace('T', ' ')})
 
         return busy
     except HttpError as e:

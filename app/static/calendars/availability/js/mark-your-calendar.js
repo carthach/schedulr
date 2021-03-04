@@ -133,12 +133,24 @@
             render();
         }
 
-        this.getStartDateTime = function() {
+        this.getStartDateStartTime = function() {
             return moment(settings.startDate).format('YYYY-MM-DDT00:00:00.000Z');
+        }
+
+        this.getStartDateEndTime = function() {
+            return moment(settings.startDate).format('YYYY-MM-DDT23:59:59.000Z');
+        }
+
+        this.getStartDateCurrentTime = function() {
+            return moment(settings.startDate).format('YYYY-MM-DDThh:mm:ss.000Z');
         }
 
         this.getStartDate = function() {
             return moment(settings.startDate).format('YYYY-MM-DD');
+        }
+
+        this.getTZOffset = function () {
+            return moment(settings.startDate).format('Z');
         }
 
         // clear

@@ -262,12 +262,12 @@ def availability():
 @cross_origin()
 def update_availability():
     if request.method == 'POST':
-        calendars = json.loads(request.form.get('calendar_ids'))
+        accounts = json.loads(request.form.get('calendar_ids'))
         date = request.form['date']
+        tz = request.form['tz_offset']
 
-        busy = get_busy_times(calendars, date)
-
-        return jsonify({'success': 'Success'})
+        busy = get_busy_times(accounts, date, tz)
+        return jsonify({'success': True, 'busy': busy})
     return jsonify({'error': 'Error'})
 
 

@@ -307,14 +307,15 @@
 <!-- Pickers -->
 <!-- Availability -->
 <script>
-    let myHours = generateAvailability('7:00', 45);
-
-    let d = new Date();
+    let interval = 30;
+    let startTime = '7:00';
+    let day = new Date();
+    let myHours = generateAvailability(startTime, day, interval, null);
 
     var instance = $('#picker').markyourcalendar({
         availability: myHours,
         isMultiple: false,
-        startDate: d,
+        startDate: day,
         weekdays: ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
         onClickNavigator:function(ev, instance) {
              instance.setAvailability(myHours);
@@ -359,9 +360,16 @@
         }
     });
 
-    function UpdatePicker(selectedDates){
-        d = new Date(selectedDates);
-        instance.setStartDate(d);
+    function UpdatePicker(selectedDate, busy=null){
+        day = new Date(selectedDate);
+        instance.setStartDate(day);
+
+        if (busy !== null){
+            let hours = generateAvailability(startTime, day, interval, busy)
+
+            if (hours.length > 0)
+                instance.setAvailability(hours);
+        }
         render();
     }
 
@@ -369,6 +377,8 @@
     function UpdateAvailability(){
         let checkboxes = document.getElementsByName('calendar-checkbox');
         let date = instance.getStartDate();
+        let tz_offset = instance.getTZOffset();
+
         let checked = [];
         for (let i=0; i < checkboxes.length; i++) {
 
@@ -380,11 +390,11 @@
         $.ajax({
             url: "{{ url_for('user.update_availability') }}",
             type: 'POST',
-            data: {'calendar_ids': JSON.stringify(checked), 'user_id': '{{ current_user.id }}', 'date': date},
+            data: {'calendar_ids': JSON.stringify(checked), 'user_id': '{{ current_user.id }}', 'date': date, 'tz_offset': tz_offset},
             success: function (response) {
-                if (response['success'] === true) {
-                    let dates = response['dates'];
-                    UpdatePicker(dates);
+                if ('success' in response && response['success'] === true && 'busy' in response) {
+                    let busy = response['busy'];
+                    UpdatePicker(instance.getStartDateCurrentTime(), busy);
                 }
             },
             error: function (xhr) {

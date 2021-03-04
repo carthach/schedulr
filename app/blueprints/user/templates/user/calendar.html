@@ -303,17 +303,17 @@
 <script>
     let interval = 30;
     let startTime = '7:00';
+    let day = new Date();
 
     if (!(typeof '{{ event_type.duration_minutes }}' === 'undefined'))
         interval = parseInt('{{ event_type.duration_minutes }}');
-    let myHours = generateAvailability(startTime, interval);
 
-    let d = new Date();
+    let myHours = generateAvailability(startTime, day, interval);
 
     var instance = $('#picker').markyourcalendar({
         availability: myHours,
         isMultiple: false,
-        startDate: d,
+        startDate: day,
         weekdays: ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
         onClickNavigator:function(ev, instance) {
              instance.setAvailability(myHours);
@@ -338,8 +338,6 @@
         let t = h + ':' + m;
         let tz = moment(date).format('Z')
 
-        //alert(dt + '\n' + d + '\n' + t + '\n' + tz);
-
         document.getElementById('datetime').value = dt;
         document.getElementById('date').value = d;
         document.getElementById('start-time').value = t;
@@ -360,9 +358,16 @@
         }
     });
 
-    function UpdatePicker(selectedDates){
-        d = new Date(selectedDates);
-        instance.setStartDate(d);
+    function UpdatePicker(selectedDate, busy=null){
+        day = new Date(selectedDate);
+        instance.setStartDate(day);
+
+        if (busy !== null){
+            let hours = generateAvailability(startTime, day, interval, busy)
+
+            if (hours.length > 0)
+                instance.setAvailability(hours);
+        }
         render();
     }
 

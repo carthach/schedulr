@@ -1,3 +1,31 @@
+function generateAvailability(startTime, date, interval, busy=null) {
+    const period = 'm';
+    let d = moment("23:59:59", "HH:mm:ss").diff(moment(startTime, "HH:mm:ss"), 'minutes');
+    const periodsInADay = moment.duration(d, 'minutes').as(period);
+
+    const times = [];
+    const startTimeMoment = moment(startTime, 'hh:mm:ssZ');
+
+    for (let i = 0; i <= periodsInADay; i += interval) {
+        startTimeMoment.add(i === 0 ? 0 : interval, period);
+        if (busy !== null && busy.length > 0){
+            let currentDateTime = moment(date).format('YYYY-MM-DD ' + startTimeMoment.format('HH:mm:ss') + 'Z');
+            let exists = busy.some(x => moment(currentDateTime).isBetween(moment(JSON.stringify(x['start'])), moment(JSON.stringify(x['end']))) ||
+                            moment(currentDateTime).add(interval, period).isBetween(moment(JSON.stringify(x['start'])), moment(JSON.stringify(x['end']))) ||
+                            moment(currentDateTime).isSame(moment(JSON.stringify(x['start']))) ||
+                            moment(currentDateTime).isSame(moment(JSON.stringify(x['end']))));
+            if (!exists)
+            {
+                times.push(startTimeMoment.format('hh:mm a'));
+            }
+        }
+        else{
+            times.push(startTimeMoment.format('hh:mm a'));
+        }
+    }
+    return [times];
+}
+
 function generateTimes(interval, military=false, availability=[]) {
     let x = interval
     let times = []; // time array
@@ -47,19 +75,4 @@ function generateTimes(interval, military=false, availability=[]) {
         }
     }
     return times
-}
-
-
-function generateAvailability(startTime, interval) {
-    const period = 'm';
-    let d = moment("23:59:59", "HH:mm:ss").diff(moment(startTime, "HH:mm:ss"), 'minutes');
-    const periodsInADay = moment.duration(d, 'minutes').as(period);
-
-    const timeLabels = [];
-    const startTimeMoment = moment(startTime, 'hh:mm');
-    for (let i = 0; i <= periodsInADay; i += interval) {
-        startTimeMoment.add(i === 0 ? 0 : interval, period);
-        timeLabels.push(startTimeMoment.format('hh:mm a'));
-    }
-    return [timeLabels];
 }
