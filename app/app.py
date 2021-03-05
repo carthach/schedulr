@@ -92,7 +92,7 @@ def create_app(settings_override=None):
         app.config['REMEMBER_COOKIE_DOMAIN'] = '.schedulr.io'
     else:
         # Set the app server name
-        SERVER_NAME = '1df4d8efb17a.ngrok.io'
+        SERVER_NAME = '0ff702005ae7.ngrok.io'
         app.config['SERVER_NAME'] = SERVER_NAME
         app.config['REMEMBER_COOKIE_DOMAIN'] = '.' + SERVER_NAME
 
@@ -137,13 +137,6 @@ def create_app(settings_override=None):
     COMPRESS_LEVEL = 6
     COMPRESS_MIN_SIZE = 500
     Compress(app)
-
-    # @app.before_request
-    # def before_request():
-    #     if not request.is_secure and os.environ.get('PRODUCTION') == 'true':
-    #         url = request.url.replace("http://", "https://", 1)
-    #         code = 301
-    #         return shopify_redirect(url, code=code)
 
     @app.errorhandler(500)
     def error_502(e):

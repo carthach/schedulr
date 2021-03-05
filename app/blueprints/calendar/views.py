@@ -12,11 +12,11 @@ def google_auth():
     result = get_credentials()
 
     if result:
-        flash("Successfully added your calendar.", 'success')
+        flash("Successfully added your account.", 'success')
     elif result == 1:
         flash("This account has already been connected.", 'warning')
     else:
-        flash("There was a problem adding your calendar. Please try again.", 'error')
+        flash("There was a problem adding your account. Please try again.", 'error')
 
     return redirect(url_for('user.availability'))
 

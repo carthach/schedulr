@@ -3,8 +3,9 @@ from sqlalchemy_utils import database_exists, create_database
 from app.app import create_app
 from app.extensions import db
 from app.blueprints.user.models.user import User
-from app.blueprints.shopify.models.plan import Plan
 from app.blueprints.calendar.models.event_type import EventType
+from app.blueprints.calendar.models.calendar import Calendar
+from app.blueprints.calendar.models.account import Account
 
 # Create an app context for the database connection.
 app = create_app()
@@ -111,55 +112,55 @@ def seed_events():
     return EventType(**event_type_15).save()
 
 
-@click.command()
-def seed_plans():
-    """
-    Seed the database with plans.
-
-    :return: Plan instance
-    """
-
-    hobby = {
-        'title': 'Hobby',
-        'tag': 'hobby',
-        'limit': 100,
-        'price': 19
-    }
-
-    startup = {
-        'title': 'Startup',
-        'tag': 'startup',
-        'limit': 500,
-        'price': 39
-    }
-
-    business = {
-        'title': 'Business',
-        'tag': 'business',
-        'limit': 1000,
-        'price': 69
-    }
-
-    enterprise = {
-        'title': 'Enterprise',
-        'tag': 'enterprise',
-        'limit': 5000,
-        'price': 129
-    }
-
-    unlimited = {
-        'title': 'Unlimited',
-        'tag': 'unlimited',
-        'limit': 999999,
-        'price': 199
-    }
-
-    Plan(**hobby).save()
-    Plan(**startup).save()
-    Plan(**business).save()
-    Plan(**enterprise).save()
-
-    return Plan(**unlimited).save()
+# @click.command()
+# def seed_plans():
+#     """
+#     Seed the database with plans.
+#
+#     :return: Plan instance
+#     """
+#
+#     hobby = {
+#         'title': 'Hobby',
+#         'tag': 'hobby',
+#         'limit': 100,
+#         'price': 19
+#     }
+#
+#     startup = {
+#         'title': 'Startup',
+#         'tag': 'startup',
+#         'limit': 500,
+#         'price': 39
+#     }
+#
+#     business = {
+#         'title': 'Business',
+#         'tag': 'business',
+#         'limit': 1000,
+#         'price': 69
+#     }
+#
+#     enterprise = {
+#         'title': 'Enterprise',
+#         'tag': 'enterprise',
+#         'limit': 5000,
+#         'price': 129
+#     }
+#
+#     unlimited = {
+#         'title': 'Unlimited',
+#         'tag': 'unlimited',
+#         'limit': 999999,
+#         'price': 199
+#     }
+#
+#     Plan(**hobby).save()
+#     Plan(**startup).save()
+#     Plan(**business).save()
+#     Plan(**enterprise).save()
+#
+#     return Plan(**unlimited).save()
 
 
 @click.command()
@@ -175,7 +176,7 @@ def reset(ctx, with_testdb):
     """
     ctx.invoke(init, with_testdb=with_testdb)
     ctx.invoke(seed_users)
-    ctx.invoke(seed_plans)
+    # ctx.invoke(seed_plans)
     ctx.invoke(seed_events)
 
     return None
@@ -197,6 +198,6 @@ def backup():
 
 cli.add_command(init)
 cli.add_command(seed_users)
-cli.add_command(seed_plans)
+# cli.add_command(seed_plans)
 cli.add_command(seed_events)
 cli.add_command(reset)

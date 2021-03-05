@@ -4,10 +4,8 @@
 celerybeat-schedule
 node_modules
 ngrok.py
-/blueprints/shopify/config.py
 /venv
 /build
 .idea
 ngrok.exe
-/app/blueprints/shopify/config.py
 credentials.json

@@ -31,10 +31,9 @@ from app.blueprints.calendar.functions import get_availability, get_calendar_lis
 
 # Models
 from app.blueprints.user.models.user import User
-from app.blueprints.calendar.models.calendar import Calendar
+from app.blueprints.calendar.models.account import Account
 from app.blueprints.calendar.models.event_type import EventType
 from app.blueprints.calendar.models.event import Event
-from app.blueprints.shopify.models.plan import Plan
 from app.blueprints.user.forms import (
     SignupForm,
     LoginForm,
@@ -246,8 +245,8 @@ def calendar(event_id=None, username=None, tag=None):
 @login_required
 @cross_origin()
 def availability():
-    a = Calendar.query.filter(Calendar.user_id == current_user.id).all()
-    accounts = [{'id': x.account_id, 'account': x.email, 'calendars': get_calendar_list(x.token, x.refresh_token)} for x in a]
+    a = Account.query.filter(Account.user_id == current_user.id).all()
+    accounts = [{'id': x.calendar_account_id, 'account': x.email, 'calendars': get_calendar_list(x.token, x.refresh_token)} for x in a]
     if any(d['calendars'] == -1 for d in accounts):
         flash('There was a problem getting calendars. Please try again.', 'error')
         return redirect(url_for('user.availability'))
@@ -275,7 +274,7 @@ def update_availability():
 @csrf.exempt
 @cross_origin()
 def get_calendars():
-    accounts = Calendar.query.filter(Calendar.user_id == current_user.id).all()
+    accounts = Account.query.filter(Account.user_id == current_user.id).all()
     for account in accounts:
         calendars = get_calendar_list(account.token, account.refresh_token)
 

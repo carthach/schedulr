@@ -68,7 +68,7 @@
             `;
 
             var navHtml = `
-                <div id="myc-nav-container">
+                <div id="myc-nav-container2">
                     ` + previousWeekHtml + `
                     ` + monthYearHtml + `
                     ` + nextWeekHtml + `
@@ -143,6 +143,10 @@
 
         this.getStartDateCurrentTime = function() {
             return moment(settings.startDate).format('YYYY-MM-DDThh:mm:ss.000Z');
+        }
+
+        this.getSelectedDateTime = function(date) {
+            return moment(date).format('YYYY-MM-DDThh:mm:ss.000Z');
         }
 
         this.getStartDate = function() {
@@ -220,8 +224,8 @@
         var render = function() {
             ret = `
                 <div id="myc-container">
-                    <div id="myc-nav-container">` + instance.getNavControl() + `</div>
                     <div id="myc-week-container">
+                        <div id="myc-nav-container">` + instance.getNavControl() + `</div>
                         <div id="myc-dates-container">` + instance.getDatesHeader() + `</div>
                         <div id="myc-available-time-container">` + instance.getAvailableTimes() + `</div>
                     </div>

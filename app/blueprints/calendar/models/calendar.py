@@ -4,6 +4,7 @@ import random
 
 from lib.util_sqlalchemy import ResourceMixin, AwareDateTime
 from app.extensions import db
+from app.blueprints.calendar.models.account import Account
 
 
 class Calendar(ResourceMixin, db.Model):
@@ -12,14 +13,12 @@ class Calendar(ResourceMixin, db.Model):
     # Objects.
     id = db.Column(db.Integer, primary_key=True)
     calendar_id = db.Column(db.BigInteger, unique=True, index=True, nullable=False)
-    account_id = db.Column(db.String(255), unique=True, index=True, nullable=True)
-    email = db.Column(db.String(255), unique=True, index=True, nullable=False, server_default='')
-    token = db.Column(db.String(255), nullable=True)
-    refresh_token = db.Column(db.String(255), nullable=True)
     active = db.Column('is_active', db.Boolean(), nullable=False, server_default='1')
 
     # Relationships.
     user_id = db.Column(db.Integer, db.ForeignKey('users.id', onupdate='CASCADE', ondelete='CASCADE'),
+                        index=True, nullable=True, primary_key=False, unique=False)
+    account_id = db.Column(db.Integer, db.ForeignKey(Account.account_id, onupdate='CASCADE', ondelete='CASCADE'),
                         index=True, nullable=True, primary_key=False, unique=False)
 
     def __init__(self, **kwargs):

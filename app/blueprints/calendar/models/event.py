@@ -1,7 +1,7 @@
 from sqlalchemy import or_, exists
 import string
 import random
-from app.blueprints.calendar.models.calendar import Calendar
+from app.blueprints.calendar.models.account import Account
 from lib.util_sqlalchemy import ResourceMixin, AwareDateTime
 from app.extensions import db
 
@@ -25,8 +25,8 @@ class Event(ResourceMixin, db.Model):
     # Relationships.
     user_id = db.Column(db.Integer, db.ForeignKey('users.id', onupdate='CASCADE', ondelete='CASCADE'),
                         index=True, nullable=True, primary_key=False, unique=False)
-    calendar_id = db.Column(db.BigInteger, db.ForeignKey(Calendar.calendar_id, onupdate='CASCADE', ondelete='CASCADE'),
-                        index=True, nullable=True, primary_key=False, unique=False)
+    account_id = db.Column(db.BigInteger, db.ForeignKey(Account.account_id, onupdate='CASCADE', ondelete='CASCADE'),
+                            index=True, nullable=True, primary_key=False, unique=False)
     event_type_id = db.Column(db.BigInteger, db.ForeignKey('event_types.event_type_id', onupdate='CASCADE', ondelete='CASCADE'),
                         index=True, nullable=True, primary_key=False, unique=False)
 

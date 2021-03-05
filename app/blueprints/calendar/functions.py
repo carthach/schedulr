@@ -3,7 +3,7 @@ from pprint import pprint
 import itertools
 from app.blueprints.base.functions import print_traceback
 from app.blueprints.calendar.google.calendar import create_calendar_service, refresh_token
-from app.blueprints.calendar.models.calendar import Calendar
+from app.blueprints.calendar.models.account import Account
 from googleapiclient.errors import HttpError
 
 
@@ -25,7 +25,7 @@ def get_busy_times(accounts, date, tz):
                 itertools.groupby(sorted(accounts, key=keyfunc), key=lambda x: x['account'])]
     try:
         for account in accounts:
-            a = Calendar.query.filter(Calendar.account_id == account['account']).scalar()
+            a = Account.query.filter(Account.calendar_account_id == account['account']).scalar()
             service = create_calendar_service(a.token, a.refresh_token)
 
             # Get the user's calendar time zone

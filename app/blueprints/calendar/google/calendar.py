@@ -2,7 +2,7 @@ import requests
 import google_auth_oauthlib.flow
 from flask import request, current_app, redirect, url_for
 from flask_login import current_user
-from app.blueprints.calendar.models.calendar import Calendar
+from app.blueprints.calendar.models.account import Account
 from app.blueprints.base.functions import print_traceback
 from googleapiclient.discovery import build
 from google.auth.transport.requests import Request
@@ -59,19 +59,19 @@ def get_credentials():
                 credentials.refresh(Request())
 
             # This user is already in the database, so we are refreshing the access token.
-            if db.session.query(exists().where(Calendar.account_id == info['id'])).scalar():
-                calendar = Calendar.query.filter(Calendar.account_id == info['id']).scalar()
-                calendar.token = credentials.token
-                calendar.refresh_token = credentials.refresh_token
-                calendar.save()
+            if db.session.query(exists().where(Account.calendar_account_id == info['id'])).scalar():
+                account = Account.query.filter(Account.calendar_account_id == info['id']).scalar()
+                account.token = credentials.token
+                account.refresh_token = credentials.refresh_token
+                account.save()
             else:
-                calendar = Calendar()
-                calendar.user_id = current_user.id
-                calendar.account_id = info['id']
-                calendar.email = info['email']
-                calendar.token = credentials.token,
-                calendar.refresh_token = credentials.refresh_token
-                calendar.save()
+                account = Account()
+                account.user_id = current_user.id
+                account.calendar_account_id = info['id']
+                account.email = info['email']
+                account.token = credentials.token,
+                account.refresh_token = credentials.refresh_token
+                account.save()
 
             return True
         else:
@@ -125,14 +125,14 @@ def refresh_token(refresh):
             return 0
         else:
             # Delete the calendar if unable to refresh the token.
-            Calendar.query.filter(Calendar.refresh_token == refresh).scalar().delete()
+            Account.query.filter(Account.refresh_token == refresh).scalar().delete()
             return -1
 
     except Exception as e:
         print_traceback(e)
 
         # Delete the calendar if unable to refresh the token.
-        Calendar.query.filter(Calendar.refresh_token == refresh).scalar().delete()
+        Account.query.filter(Account.refresh_token == refresh).scalar().delete()
         return -1
 
 
