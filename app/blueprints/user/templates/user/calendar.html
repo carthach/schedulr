@@ -137,9 +137,10 @@
 
                 <div class="flex flex-col mb-5 col-span-5">
                     <div class="pl-5 pr-10 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-                        <div class="py-1 align-middle inline-block min-w-full sm:px-6 lg:px-8">
-                            <div id="selected-date-confirm" class="hidden" style="padding:50px 0 0 35px">
-                                <div class="bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200" style="max-height:650px;">
+                        <div class="py-1 align-middle inline-block min-w-full sm:px-6 lg:px-8" style="padding-left:75px;">
+                            <h1 class="mb-5 text-xl font-w700 text-gray-900" style="visibility:hidden">Schedule meeting</h1>
+                            <div id="selected-date-confirm" class="hidden">
+                                <div class="bg-white overflow-hidden divide-y divide-gray-200" style="max-height:652px;border:1px solid #e0e0e0;">
                                     <div class="px-4 py-5 sm:px-6">
                                         <div>
                                             <h3 class="text-lg leading-6 font-medium text-gray-900">
@@ -165,7 +166,7 @@
                                             {% set email = '' %}
                                         {% endif %}
                                         <form class="space-y-8 divide-y divide-gray-200" method="post" action="{{ url_for('user.confirm_event') }}">
-                                          <div class="space-y-8 divide-y divide-gray-200 sm:space-y-5">
+                                          <div class="space-y-8 divide-y divide-gray-200 sm:space-y-5 px-5">
                                             <div>
                                               <div class="space-y-6 sm:space-y-5">
                                                 <div class="sm:grid sm:grid-cols-4 sm:gap-4 sm:items-start sm:pt-3">
@@ -188,7 +189,7 @@
 
                                                 <div class="sm:grid sm:grid-cols-4 sm:gap-4 sm:items-start sm:border-t sm:border-gray-200 sm:pt-3">
                                                   <label for="zoom" class="text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">
-                                                    Zoom Link<img class="ml-2" src="http://assets.stickpng.com/thumbs/5e8ce318664eae0004085461.png" style="display:inline" width="17px" height="17px" />
+                                                    Zoom Link<img class="ml-2" src="{{ url_for('static', filename='assets/images/zoom.png') }}" style="display:inline" width="15px" height="15px" alt="" />
                                                   </label>
                                                   <div class="mt-1 sm:mt-0 sm:col-span-3">
                                                     <input id="zoom" name="zoom" type="text" autocomplete="zoom" class="block max-w-lg w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border-gray-300 rounded-md">
@@ -280,9 +281,6 @@
 <!-- Pickers -->
 <!-- Availability -->
 <script>
-    // Hide the loader when the page loads
-    //HideLoader();
-
     let user_id = '';
     let interval = 30;
     let startTime = '7:00';
@@ -310,9 +308,7 @@
         },
     });
 
-    // Get the busy times when the page loads.
-    if (!(typeof '{{ busy }}' === 'undefined'))
-        UpdatePicker(instance.getStartDateCurrentTime(), JSON.parse('{{ busy | tojson }}'));
+    UpdateBusyTimesOnLoad('{{ loadServerSide }}');
 
     function addDays(date, days) {
         var result = new Date(date);
@@ -345,7 +341,6 @@
         ],
         onChange: function(selectedDates, dateStr, instance) {
             GetBusyTimes(user_id, selectedDates);
-            //UpdatePicker(selectedDates);
         }
     });
 
@@ -386,6 +381,17 @@
             error: function (xhr) {
             }
         });
+    }
+
+    function UpdateBusyTimesOnLoad(loadServerSide=false){
+        if (loadServerSide === true){
+            // Get the busy times when the page loads.
+            if (!(typeof '{{ busy }}' === 'undefined'))
+                UpdatePicker(instance.getStartDateCurrentTime(), JSON.parse('{{ busy | tojson }}'));
+        }
+        else{
+            GetBusyTimes(user_id);
+        }
     }
 </script>
 </body>

@@ -126,6 +126,7 @@
         this.setAvailability = function(arr) {
             settings.availability = arr;
             render();
+            HideLoader();
         }
 
         this.setStartDate = function(date) {

@@ -12,7 +12,7 @@
     /*border: 0;*/
     font-size: 16px;
     line-height: 24px;
-    border-radius: 5px;
+    /*border-radius: 5px;*/
     position: absolute;
     /* Ricky */
     /*width: 307.875*/
@@ -50,7 +50,7 @@
     margin-top:5px;
     border-width: 1px;
     border-style: solid;
-    border-color: #e5e7eb;
+    border-color: #e0e0e0;
 }
 .flatpickr-calendar.static {
     position: absolute;
@@ -559,7 +559,8 @@ span.flatpickr-weekday {
     border-color: #e6e6e6;
 }
 .flatpickr-day.today {
-    border-color: #959ea9;
+    border-color: #29b6f6;
+    background: #CDEFFF;
 }
 .flatpickr-day.today:hover,
 .flatpickr-day.today:focus {
@@ -624,7 +625,7 @@ span.flatpickr-weekday {
 .flatpickr-day.notAllowed,
 .flatpickr-day.notAllowed.prevMonthDay,
 .flatpickr-day.notAllowed.nextMonthDay {
-    color: rgba(57, 57, 57, 0.3);
+    color: rgba(57, 57, 57, 0.4);
     background: transparent;
     border-color: transparent;
     cursor: default;

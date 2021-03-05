@@ -221,18 +221,20 @@ Calendars
 @csrf.exempt
 @cross_origin()
 def calendar(event_id=None, username=None, tag=None):
-
+    load_server_side = False
+    busy = list()
     if event_id is not None:
         event_type = EventType.query.filter(EventType.event_type_id == event_id).scalar()
 
         if event_type is not None:
-            user_id = event_type.user_id
-            accounts = Account.query.filter(Account.user_id == user_id).all()
+            if load_server_side:
+                user_id = event_type.user_id
+                accounts = Account.query.filter(Account.user_id == user_id).all()
 
-            ids = get_calendar_ids_for_accounts(accounts)
-            busy = get_busy(ids)
+                ids = get_calendar_ids_for_accounts(accounts)
+                busy = get_busy(ids)
 
-            return render_template('user/calendar.html', current_user=current_user, event_type=event_type, busy=busy)
+            return render_template('user/calendar.html', current_user=current_user, event_type=event_type, busy=busy, loadServerSide=load_server_side)
     elif username is not None and tag is not None:
         u = User.query.filter(User.username == username).scalar()
         if u is None:
@@ -241,13 +243,15 @@ def calendar(event_id=None, username=None, tag=None):
         event_type = EventType.query.filter(and_(EventType.user_id == u.id, EventType.tag == tag)).scalar()
 
         if event_type is not None:
-            user_id = u.id
-            accounts = Account.query.filter(Account.user_id == user_id).all()
+            if load_server_side:
+                user_id = u.id
+                accounts = Account.query.filter(Account.user_id == user_id).all()
 
-            ids = get_calendar_ids_for_accounts(accounts)
-            busy = get_busy(ids)
+                ids = get_calendar_ids_for_accounts(accounts)
+                busy = get_busy(ids)
 
-            return render_template('user/calendar.html', current_user=current_user, event_type=event_type, busy=busy)
+            return render_template('user/calendar.html', current_user=current_user, event_type=event_type,
+                                   busy=busy, loadServerSide=load_server_side)
 
     return redirect(url_for('user.events'))
 
