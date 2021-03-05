@@ -31,10 +31,28 @@ function render(instance){
             <div id="myc-week-container">
                 <div id="myc-nav-container">` + instance.getNavControl() + `</div>
                 <div id="myc-dates-container">` + instance.getDatesHeader() + `</div>
-                <div id="myc-available-time-container">` + instance.getAvailableTimes() + `</div>
+                <div id="myc-available-time-container"><div id="loader"></div>` + instance.getAvailableTimes() + `</div>
             </div>
         </div>
     `;
 
     document.getElementById('picker').innerHTML = ret;
+
+    // Hide the loader when rendering
+    HideLoader();
+}
+
+function ShowLoader() {
+    if (document.getElementById('loader'))
+        document.getElementById('loader').style.display = '';
+
+    if (document.getElementById('myc-available-time-container'))
+        document.getElementById('myc-available-time-container').style.overflowY = 'hidden';
+}
+function HideLoader(){
+    if (document.getElementById('loader'))
+        document.getElementById('loader').style.display = 'none';
+
+    if (document.getElementById('myc-available-time-container'))
+        document.getElementById('myc-available-time-container').style.overflowY = 'auto';
 }

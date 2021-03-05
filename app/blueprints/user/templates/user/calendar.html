@@ -115,7 +115,7 @@
                     <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                         <div class="py-1 align-middle inline-block min-w-full sm:px-6 lg:px-8">
                             <div style="width:650px;margin:0 auto; float:none;">
-                                <h1 class="mb-5 text-xl font-w700 text-gray-900">{{ event_type.title | title }} - Available times</h1>
+                                <h1 class="mb-5 text-xl font-w700 text-gray-900">{{ event_type.title | title }}</h1>
                                 <div id="calendar"></div>
                                 {% include '/user/includes/calendar.html' ignore missing %}
                             </div>
@@ -127,6 +127,7 @@
                     <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                         <div class="py-1 align-middle inline-block min-w-full sm:px-6 lg:px-8">
                             <div>
+                                <h1 class="mb-5 text-xl font-w700 text-gray-900">Available times</h1>
                                 <div id="picker"></div>
                                 {% include '/user/includes/picker.html' ignore missing %}
                             </div>
@@ -138,7 +139,7 @@
                     <div class="pl-5 pr-10 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                         <div class="py-1 align-middle inline-block min-w-full sm:px-6 lg:px-8">
                             <div id="selected-date-confirm" class="hidden" style="padding:50px 0 0 35px">
-                                <div class="bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200">
+                                <div class="bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200" style="max-height:650px;">
                                     <div class="px-4 py-5 sm:px-6">
                                         <div>
                                             <h3 class="text-lg leading-6 font-medium text-gray-900">
@@ -167,7 +168,7 @@
                                           <div class="space-y-8 divide-y divide-gray-200 sm:space-y-5">
                                             <div>
                                               <div class="space-y-6 sm:space-y-5">
-                                                <div class="sm:grid sm:grid-cols-4 sm:gap-4 sm:items-start sm:pt-5">
+                                                <div class="sm:grid sm:grid-cols-4 sm:gap-4 sm:items-start sm:pt-3">
                                                   <label for="name" class="block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">
                                                     Name<span style="color:red">*</span>
                                                   </label>
@@ -176,7 +177,7 @@
                                                   </div>
                                                 </div>
 
-                                                <div class="sm:grid sm:grid-cols-4 sm:gap-4 sm:items-start sm:border-t sm:border-gray-200 sm:pt-5">
+                                                <div class="sm:grid sm:grid-cols-4 sm:gap-4 sm:items-start sm:border-t sm:border-gray-200 sm:pt-3">
                                                   <label for="email" class="block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">
                                                     Email address<span style="color:red">*</span>
                                                   </label>
@@ -185,21 +186,21 @@
                                                   </div>
                                                 </div>
 
-                                                <div class="sm:grid sm:grid-cols-4 sm:gap-4 sm:items-start sm:border-t sm:border-gray-200 sm:pt-5">
+                                                <div class="sm:grid sm:grid-cols-4 sm:gap-4 sm:items-start sm:border-t sm:border-gray-200 sm:pt-3">
                                                   <label for="zoom" class="text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">
-                                                    <img class="mr-2" src="http://assets.stickpng.com/thumbs/5e8ce318664eae0004085461.png" style="display:inline" width="17px" height="17px" />Zoom Link
+                                                    Zoom Link<img class="ml-2" src="http://assets.stickpng.com/thumbs/5e8ce318664eae0004085461.png" style="display:inline" width="17px" height="17px" />
                                                   </label>
                                                   <div class="mt-1 sm:mt-0 sm:col-span-3">
                                                     <input id="zoom" name="zoom" type="text" autocomplete="zoom" class="block max-w-lg w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border-gray-300 rounded-md">
                                                   </div>
                                                 </div>
 
-                                                <div class="sm:grid sm:grid-cols-4 sm:gap-4 sm:items-start sm:border-t sm:border-gray-200 sm:pt-5">
+                                                <div class="sm:grid sm:grid-cols-4 sm:gap-4 sm:items-start sm:border-t sm:border-gray-200 sm:pt-3">
                                                   <label for="about" class="block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">
                                                     Notes
                                                   </label>
                                                   <div class="mt-1 sm:mt-0 sm:col-span-3">
-                                                    <textarea id="notes" name="notes" rows="7" style="resize:none;" class="max-w-lg shadow-sm block w-full focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border-gray-300 rounded-md"></textarea>
+                                                    <textarea id="notes" name="notes" rows="6" style="resize:none;" class="max-w-lg shadow-sm block w-full focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border-gray-300 rounded-md"></textarea>
                                                     <p class="mt-2 text-sm text-gray-500">Enter any notes for this meeting.</p>
                                                   </div>
                                                 </div>
@@ -240,7 +241,8 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="{{ url_for('static', filename='calendars/availability/js/mark-your-calendar.js') }}"></script>
-<script src="{{ url_for('static', filename='calendars/calendars.js') }}"></script>
+<script src="{{ url_for('static', filename='calendars/generate.js') }}"></script>
+<script src="{{ url_for('static', filename='javascript/dropdown.js') }}"></script>
 <script src="{{ url_for('static', filename='calendars/moment.js') }}"></script>
 
 <script>
@@ -270,29 +272,6 @@
         }, 4000);
     }
 
-    function SearchProducts(e) {
-        var input = '';
-        input += e.value;
-
-        var product_rows = document.getElementsByClassName('product-row');
-        document.getElementById('search-term').innerText = input;
-
-        for (var i = 0; i < product_rows.length; i++) {
-            var item = product_rows[i];
-            if (item.textContent.toLowerCase().includes(input.toLowerCase()) === false) {
-                item.style.display = 'none';
-            } else {
-                item.style.display = '';
-            }
-        }
-
-        if (input) {
-            document.getElementById('search-results').style.display = '';
-        } else {
-            document.getElementById('search-results').style.display = 'none';
-        }
-    }
-
     function Reload(){
         location.reload();
     }
@@ -301,12 +280,19 @@
 <!-- Pickers -->
 <!-- Availability -->
 <script>
+    // Hide the loader when the page loads
+    //HideLoader();
+
+    let user_id = '';
     let interval = 30;
     let startTime = '7:00';
     let day = new Date();
 
     if (!(typeof '{{ event_type.duration_minutes }}' === 'undefined'))
         interval = parseInt('{{ event_type.duration_minutes }}');
+
+    if (!(typeof '{{ event_type.user_id }}' === 'undefined'))
+        user_id = parseInt('{{ event_type.user_id }}');
 
     let myHours = generateAvailability(startTime, day, interval);
 
@@ -323,6 +309,10 @@
             document.getElementById('selected-date').innerText = FormatDate(new Date(data));
         },
     });
+
+    // Get the busy times when the page loads.
+    if (!(typeof '{{ busy }}' === 'undefined'))
+        UpdatePicker(instance.getStartDateCurrentTime(), JSON.parse('{{ busy | tojson }}'));
 
     function addDays(date, days) {
         var result = new Date(date);
@@ -354,7 +344,8 @@
             }
         ],
         onChange: function(selectedDates, dateStr, instance) {
-            UpdatePicker(selectedDates);
+            GetBusyTimes(user_id, selectedDates);
+            //UpdatePicker(selectedDates);
         }
     });
 
@@ -368,79 +359,34 @@
             if (hours.length > 0)
                 instance.setAvailability(hours);
         }
-        render();
+        render(instance);
     }
 
-    function render() {
-        var ret = `
-            <div id="myc-container">
-                <div id="myc-nav-container">` + instance.getNavControl() + `</div>
-                <div id="myc-week-container">
-                    <div id="myc-dates-container">` + instance.getDatesHeader() + `</div>
-                    <div id="myc-available-time-container">` + instance.getAvailableTimes() + `</div>
-                </div>
-            </div>
-        `;
+    function GetBusyTimes(user_id, selectedDate=null){
+        if (selectedDate !== null){
+            day = new Date(selectedDate);
+            instance.setStartDate(day);
+        }
 
-        document.getElementById('picker').innerHTML = ret;
+        // Get the busy times
+        let date = instance.getStartDate();
+        let tz_offset = instance.getTZOffset();
+
+        $.ajax({
+            url: "{{ url_for('user.get_busy_times') }}",
+            type: 'POST',
+            data: {'date': date, 'tz_offset': tz_offset, 'user_id': user_id},
+            beforeSend: ShowLoader(),
+            success: function (response) {
+                if ('success' in response && response['success'] === true && 'busy' in response) {
+                    let busy = response['busy'];
+                    UpdatePicker(instance.getStartDateCurrentTime(), busy);
+                }
+            },
+            error: function (xhr) {
+            }
+        });
     }
-</script>
-
-<script>
-    var body = document.getElementsByTagName("body")[0];
-    var user_dropdown = document.getElementById('user-dropdown-menu');
-    var sort_dropdown = document.getElementById('sort-dropdown-menu');
-    var notification_dropdown = document.getElementById('notification-dropdown-menu');
-    var variant_dropdowns = document.getElementsByClassName('variant-dropdown');
-    var search_field = document.getElementById('search_field');
-
-    if (user_dropdown !== null) {
-        body.addEventListener("click", function () {
-            // Hide the user dropdown when you click outside of it
-            user_dropdown.classList.remove('opacity-100');
-            user_dropdown.classList.remove('scale-100');
-            user_dropdown.classList.add('opacity-0');
-            user_dropdown.classList.add('scale-95');
-            user_dropdown.style.display = 'none';
-        }, false);
-        document.getElementById('user-menu').addEventListener("click", function (ev) {
-            ev.stopPropagation(); //this is important! If removed, you'll get both alerts
-        }, false);
-    }
-
-    if (sort_dropdown !== null) {
-        body.addEventListener("click", function () {
-            // Hide the sort dropdown when you click outside of it
-            sort_dropdown.classList.remove('opacity-100');
-            sort_dropdown.classList.remove('scale-100');
-            sort_dropdown.classList.add('opacity-0');
-            sort_dropdown.classList.add('scale-95');
-            sort_dropdown.style.display = 'none';
-        }, false);
-        document.getElementById('sort-dropdown-button').addEventListener("click", function (ev) {
-            ev.stopPropagation(); //this is important! If removed, you'll get both alerts
-        }, false);
-    }
-
-    if (notification_dropdown !== null) {
-        body.addEventListener("click", function () {
-            // Hide the user dropdown when you click outside of it
-            notification_dropdown.classList.remove('opacity-100');
-            notification_dropdown.classList.remove('scale-100');
-            notification_dropdown.classList.add('opacity-0');
-            notification_dropdown.classList.add('scale-95');
-            notification_dropdown.style.display = 'none';
-        }, false);
-        document.getElementById('notification-menu').addEventListener("click", function (ev) {
-            ev.stopPropagation(); //this is important! If removed, you'll get both alerts
-        }, false);
-    }
-
-    {#if (search_field !== null){
-        search_field.addEventListener("change", function (e) {
-            SearchProducts(e);
-        })
-    }#}
 </script>
 </body>
 </html>

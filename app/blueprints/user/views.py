@@ -19,7 +19,7 @@ from flask_login import (
 import time
 import random
 import requests
-import pprint
+from pprint import pprint
 from operator import attrgetter
 from flask_cors import cross_origin
 from flask_paginate import Pagination, get_page_args
@@ -27,7 +27,7 @@ from lib.safe_next_url import safe_next_url
 from app.blueprints.user.decorators import anonymous_required
 
 # Functions
-from app.blueprints.calendar.functions import get_availability, get_calendar_list, get_busy_times
+from app.blueprints.calendar.functions import get_availability, get_calendar_list, get_busy, get_calendar_ids_for_accounts
 
 # Models
 from app.blueprints.user.models.user import User
@@ -216,28 +216,40 @@ Calendars
 
 
 @user.route('/calendar/', methods=['GET', 'POST'])
-@user.route('/calendar/<event_id>', methods=['GET', 'POST'])
-@user.route('/calendar/<username>/<tag>', methods=['GET', 'POST'])
+@user.route('/calendar/<event_id>', methods=['GET'])
+@user.route('/calendar/<username>/<tag>', methods=['GET'])
 @csrf.exempt
 @cross_origin()
 def calendar(event_id=None, username=None, tag=None):
+
     if event_id is not None:
         event_type = EventType.query.filter(EventType.event_type_id == event_id).scalar()
 
         if event_type is not None:
-            return render_template('user/calendar.html', current_user=current_user, event_type=event_type)
+            user_id = event_type.user_id
+            accounts = Account.query.filter(Account.user_id == user_id).all()
+
+            ids = get_calendar_ids_for_accounts(accounts)
+            busy = get_busy(ids)
+
+            return render_template('user/calendar.html', current_user=current_user, event_type=event_type, busy=busy)
     elif username is not None and tag is not None:
         u = User.query.filter(User.username == username).scalar()
         if u is None:
             return redirect(url_for('user.events'))
 
-        event_type = EventType.query.filter(EventType.user_id == u.id).scalar()
+        event_type = EventType.query.filter(and_(EventType.user_id == u.id, EventType.tag == tag)).scalar()
 
         if event_type is not None:
-            return render_template('user/calendar.html', current_user=current_user, event_type=event_type)
+            user_id = u.id
+            accounts = Account.query.filter(Account.user_id == user_id).all()
 
-    return redirect(url_for('user.events'))\
+            ids = get_calendar_ids_for_accounts(accounts)
+            busy = get_busy(ids)
 
+            return render_template('user/calendar.html', current_user=current_user, event_type=event_type, busy=busy)
+
+    return redirect(url_for('user.events'))
 
 
 @user.route('/availability/', methods=['GET', 'POST'])
@@ -250,7 +262,6 @@ def availability():
     if any(d['calendars'] == -1 for d in accounts):
         flash('There was a problem getting calendars. Please try again.', 'error')
         return redirect(url_for('user.availability'))
-    # availability = get_availability(calendars)
 
     return render_template('user/availability.html', current_user=current_user, accounts=accounts)
 
@@ -265,8 +276,28 @@ def update_availability():
         date = request.form['date']
         tz = request.form['tz_offset']
 
-        busy = get_busy_times(accounts, date, tz)
+        busy = get_busy(accounts, date, tz)
         return jsonify({'success': True, 'busy': busy})
+    return jsonify({'error': 'Error'})
+
+
+@user.route('/get_busy_times/', methods=['POST'])
+@csrf.exempt
+@login_required
+@cross_origin()
+def get_busy_times():
+    if request.method == 'POST':
+        if 'user_id' in request.form and 'date' in request.form and 'tz_offset' in request.form:
+            user_id = request.form['user_id']
+            date = request.form['date']
+            tz = request.form['tz_offset']
+
+            accounts = Account.query.filter(Account.user_id == user_id).all()
+
+            ids = get_calendar_ids_for_accounts(accounts)
+            busy = get_busy(ids, date, tz)
+
+            return jsonify({'success': True, 'busy': busy})
     return jsonify({'error': 'Error'})
 
 
@@ -364,7 +395,6 @@ def create_event_type():
         return render_template('user/event_type.html', current_user=current_user, event_type=event_type)
     else:
         return redirect(url_for('user.events'))
-
 
 
 @user.route('/save_event_type', methods=['GET', 'POST'])

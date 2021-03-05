@@ -98,7 +98,12 @@
                                                 <div>
                                                   <div class="-mt-px flex divide-x divide-gray-200">
                                                     <div class="w-0 flex-1 flex">
-                                                      <a id="edit-{{ type_id }}" href="{{ url_for('user.calendar', event_id=type_id) }}" target="_blank" class="cursor-pointer relative -mr-px w-0 flex-1 inline-flex items-center justify-center py-4 text-sm text-indigo-600 font-medium border border-transparent rounded-bl-lg hover:text-indigo-500">
+                                                        {% if event.tag and current_user.username %}
+                                                            {% set url = url_for('user.calendar', username=current_user.username, tag=event.tag) %}
+                                                        {% else %}
+                                                            {% set url = url_for('user.calendar', event_id=type_id) %}
+                                                        {% endif %}
+                                                      <a id="edit-{{ type_id }}" href="{{ url }}" target="_blank" class="cursor-pointer relative -mr-px w-0 flex-1 inline-flex items-center justify-center py-4 text-sm text-indigo-600 font-medium border border-transparent rounded-bl-lg hover:text-indigo-500">
                                                         <i id="edit-icon-{{ type_id }}" class="fa fa-external-link"></i>
                                                         <span id="edit-text-{{ type_id }}" class="ml-3">View live calendar</span>
                                                       </a>

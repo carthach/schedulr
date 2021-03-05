@@ -134,7 +134,7 @@
                                 <!-- This example requires Tailwind CSS v2.0+ -->
                                 <nav class="relative h-full overflow-y-auto border-l border-r border-b" aria-label="Directory" style="max-height:554px;">
                                     {% if accounts %}
-                                        {% for account in accounts * 20 %}
+                                        {% for account in accounts %}
                                               <div class="z-10 sticky top-0 border-t border-b border-gray-200 bg-gray-50 px-2 py-1 text-sm font-medium text-gray-500">
                                                     <div class="flex items-center space-x-3">
                                                         <img class="mr-3 w-5 h-5 bg-gray-300 rounded-full flex-shrink-0" src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Google_Calendar_icon_%282020%29.svg/1200px-Google_Calendar_icon_%282020%29.svg.png" alt="">{{ account.account }}
@@ -213,7 +213,8 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="{{ url_for('static', filename='calendars/availability/js/mark-your-calendar.js') }}"></script>
-<script src="{{ url_for('static', filename='calendars/calendars.js') }}"></script>
+<script src="{{ url_for('static', filename='calendars/generate.js') }}"></script>
+<script src="{{ url_for('static', filename='javascript/dropdown.js') }}"></script>
 <script src="{{ url_for('static', filename='calendars/moment.js') }}"></script>
 
 <script>
@@ -356,60 +357,7 @@
 </script>
 
 <script>
-    var body = document.getElementsByTagName("body")[0];
-    var user_dropdown = document.getElementById('user-dropdown-menu');
-    var sort_dropdown = document.getElementById('sort-dropdown-menu');
-    var notification_dropdown = document.getElementById('notification-dropdown-menu');
-    var variant_dropdowns = document.getElementsByClassName('variant-dropdown');
-    var search_field = document.getElementById('search_field');
 
-    if (user_dropdown !== null) {
-        body.addEventListener("click", function () {
-            // Hide the user dropdown when you click outside of it
-            user_dropdown.classList.remove('opacity-100');
-            user_dropdown.classList.remove('scale-100');
-            user_dropdown.classList.add('opacity-0');
-            user_dropdown.classList.add('scale-95');
-            user_dropdown.style.display = 'none';
-        }, false);
-        document.getElementById('user-menu').addEventListener("click", function (ev) {
-            ev.stopPropagation(); //this is important! If removed, you'll get both alerts
-        }, false);
-    }
-
-    if (sort_dropdown !== null) {
-        body.addEventListener("click", function () {
-            // Hide the sort dropdown when you click outside of it
-            sort_dropdown.classList.remove('opacity-100');
-            sort_dropdown.classList.remove('scale-100');
-            sort_dropdown.classList.add('opacity-0');
-            sort_dropdown.classList.add('scale-95');
-            sort_dropdown.style.display = 'none';
-        }, false);
-        document.getElementById('sort-dropdown-button').addEventListener("click", function (ev) {
-            ev.stopPropagation(); //this is important! If removed, you'll get both alerts
-        }, false);
-    }
-
-    if (notification_dropdown !== null) {
-        body.addEventListener("click", function () {
-            // Hide the user dropdown when you click outside of it
-            notification_dropdown.classList.remove('opacity-100');
-            notification_dropdown.classList.remove('scale-100');
-            notification_dropdown.classList.add('opacity-0');
-            notification_dropdown.classList.add('scale-95');
-            notification_dropdown.style.display = 'none';
-        }, false);
-        document.getElementById('notification-menu').addEventListener("click", function (ev) {
-            ev.stopPropagation(); //this is important! If removed, you'll get both alerts
-        }, false);
-    }
-
-    {#if (search_field !== null){
-        search_field.addEventListener("change", function (e) {
-            SearchProducts(e);
-        })
-    }#}
 </script>
 </body>
 </html>

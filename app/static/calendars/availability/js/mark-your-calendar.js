@@ -227,7 +227,7 @@
                     <div id="myc-week-container">
                         <div id="myc-nav-container">` + instance.getNavControl() + `</div>
                         <div id="myc-dates-container">` + instance.getDatesHeader() + `</div>
-                        <div id="myc-available-time-container">` + instance.getAvailableTimes() + `</div>
+                        <div id="myc-available-time-container"><div id="loader"></div>` + instance.getAvailableTimes() + `</div>
                     </div>
                 </div>
             `;
