@@ -27,7 +27,7 @@ from lib.safe_next_url import safe_next_url
 from app.blueprints.user.decorators import anonymous_required
 
 # Functions
-from app.blueprints.calendar.functions import get_availability, get_calendar_list, get_busy, get_calendar_ids_for_accounts
+from app.blueprints.calendar.functions import create_event, get_calendar_list, get_busy, get_calendar_ids_for_accounts
 
 # Models
 from app.blueprints.user.models.user import User

@@ -102,5 +102,5 @@ def get_events(calendar):
     return events
 
 
-def create_event(calendar):
+def create_event(calendar, **data):
     return
