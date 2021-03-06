@@ -6,6 +6,7 @@ import itertools
 from app.blueprints.base.functions import print_traceback
 from app.blueprints.calendar.google.calendar import create_calendar_service, refresh_token
 from app.blueprints.calendar.models.account import Account
+from app.blueprints.calendar.models.calendar import Calendar
 from googleapiclient.errors import HttpError
 
 
@@ -24,7 +25,7 @@ def get_busy(accounts, date=None, tz=None):
                 itertools.groupby(sorted(accounts, key=keyfunc), key=lambda x: x['account'])]
     try:
         for account in accounts:
-            a = Account.query.filter(Account.calendar_account_id == account['account']).scalar()
+            a = Account.query.filter(Account.imported_account_id == account['account']).scalar()
             service = create_calendar_service(a.token, a.refresh_token)
 
             # Get the user's calendar time zone if it doesn't exist
@@ -57,16 +58,44 @@ def get_busy(accounts, date=None, tz=None):
     return None
 
 
-def get_calendar_list(token, refresh):
+def get_calendars_for_accounts(accounts):
+    return [{'id': x.imported_account_id,
+             'account': x.email,
+             'calendars': get_calendar_list_from_db(x)} for x in accounts]
+
+
+def create_calendars_in_db(account_id, user_id, token, refresh):
+    calendars = get_calendar_list_from_api(token, refresh)
+    for calendar in calendars:
+        c = Calendar()
+        c.user_id = user_id
+        c.account_id = account_id
+        c.imported_calendar_id = calendar['id']
+        c.name = calendar['name']
+        c.primary = calendar['primary']
+
+        c.save()
+
+
+def get_calendar_list_from_db(account):
+    calendars = Calendar.query.filter(Calendar.account_id == account.account_id).all()
+    return [{'name': c.name, 'id': c.imported_calendar_id,
+             'calendar_id': c.calendar_id, 'active': c.active} for c in calendars]
+
+
+def get_calendar_list_from_api(token, refresh):
     calendars = list()
 
     try:
         service = create_calendar_service(token, refresh)
 
         calendar_list = service.calendarList().list().execute()
+
         for cal in calendar_list['items']:
+            primary = True if 'primary' in cal and cal['primary'] else False
             calendars.append({'name': cal['summary'],
-                              'id': cal['id']})
+                              'id': cal['id'],
+                              'primary': primary})
 
         return calendars
     except google.auth.exceptions.RefreshError:
@@ -92,9 +121,19 @@ def get_calendar_ids_for_accounts(accounts):
     calendar_ids = list()
     for account in accounts:
         for calendar in get_calendar_id_list(account.token, account.refresh_token):
-            calendar_ids.append({'account': account.calendar_account_id, 'id': calendar})
+            calendar_ids.append({'account': account.imported_account_id, 'id': calendar})
 
     return calendar_ids
+
+
+def update_calendar(calendar_id, calendar_status):
+    c = Calendar.query.filter(Calendar.calendar_id == calendar_id).scalar()
+    if c is None:
+        return
+
+    active = True if calendar_status == 'true' else False
+    c.active = active
+    c.save()
 
 
 def get_events(calendar):

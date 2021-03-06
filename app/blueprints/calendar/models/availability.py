@@ -18,7 +18,7 @@ class Availability(ResourceMixin, db.Model):
     # Relationships.
     user_id = db.Column(db.Integer, db.ForeignKey('users.id', onupdate='CASCADE', ondelete='CASCADE'),
                         index=True, nullable=True, primary_key=False, unique=False)
-    account_id = db.Column(db.BigInteger, db.ForeignKey(Account.calendar_account_id, onupdate='CASCADE', ondelete='CASCADE'),
+    account_id = db.Column(db.BigInteger, db.ForeignKey(Account.imported_account_id, onupdate='CASCADE', ondelete='CASCADE'),
                            index=True, nullable=False, primary_key=False, unique=False)
 
     def __init__(self, **kwargs):

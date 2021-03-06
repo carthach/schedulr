@@ -88,11 +88,11 @@ def create_app(settings_override=None):
     # Setting app server name and cookie domain
     if os.environ.get('PRODUCTION') == 'true':
         # Set the app server name
-        app.config['SERVER_NAME'] = 'schedulr.io'
-        app.config['REMEMBER_COOKIE_DOMAIN'] = '.schedulr.io'
+        app.config['SERVER_NAME'] = 'getschedulr.com'
+        app.config['REMEMBER_COOKIE_DOMAIN'] = '.getschedulr.com'
     else:
         # Set the app server name
-        SERVER_NAME = '0ff702005ae7.ngrok.io'
+        SERVER_NAME = 'a3984bc4213a.ngrok.io'
         app.config['SERVER_NAME'] = SERVER_NAME
         app.config['REMEMBER_COOKIE_DOMAIN'] = '.' + SERVER_NAME
 
@@ -362,7 +362,7 @@ def site_version_filter(arg):
 
 def site_url_filter(arg):
     from flask import current_app
-    return current_app.config.get('SERVER_NAME')  # 'schedulr.io'
+    return current_app.config.get('SERVER_NAME')
 
 
 def site_color_filter(arg):

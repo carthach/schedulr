@@ -146,9 +146,9 @@
                                                       <div id="" class="relative px-6 py-2 flex items-center space-x-3 hover:bg-gray-50 {#focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500#}">
                                                         <div class="flex-shrink-0">
                                                             <div class="flex items-center h-5">
-                                                                <input id="{{ calendar.id }}" name="calendar-checkbox" data-account="{{ account.id }}" style="z-index:999" type="checkbox"
+                                                                <input id="{{ calendar.id }}" {% if calendar.active %}checked{% endif %} name="calendar-checkbox" data-calendar="{{ calendar.calendar_id }}" data-account="{{ account.id }}" style="z-index:999" type="checkbox"
                                                                        class="cursor-pointer focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
-                                                                onchange="UpdateAvailability();">
+                                                                onchange="UpdateAvailability(null, this);">
                                                             </div>
                                                             <label for="{{ calendar.id }}" class="font-medium text-gray-700"></label>
                                                         </div>
@@ -180,7 +180,7 @@
                     <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                         <div class="py-1 align-middle inline-block min-w-full sm:px-6 lg:px-8">
                             <div style="width:650px;margin:0 auto; float:none;">
-                                <h1 class="mb-5 text-xl font-w700 text-gray-900">2. Choose a date:</h1>
+                                <h1 class="mb-5 text-xl font-w700 text-gray-900">2. Choose a date</h1>
                                 <div id="calendar"></div>
                                 {% include '/user/includes/calendar.html' ignore missing %}
                             </div>
@@ -253,7 +253,7 @@
 <!-- Availability -->
 <script>
 
-    let interval = 30;
+    let interval = 15;
     let startTime = '7:00';
     let day = new Date();
     let myHours = generateAvailability(startTime, day, interval, null);
@@ -324,7 +324,10 @@
     }
 
     <!-- Update availability -->
-    function UpdateAvailability(selectedDate=null){
+    function UpdateAvailability(selectedDate=null, el=null){
+        // Set the selected calendar's active status
+        SetActiveCalendar(el);
+
         let checkboxes = document.getElementsByName('calendar-checkbox');
 
         // Update the instance
@@ -360,10 +363,21 @@
         // Reload the page
         //Reload();
     }
-</script>
 
-<script>
-
+    function SetActiveCalendar(el){
+        if (el !== null){
+            let active = el.checked;
+            $.ajax({
+                url: "{{ url_for('user.update_calendar_status') }}",
+                type: 'POST',
+                data: {'calendar_id': el.dataset.calendar, 'calendar_status': active},
+                success: function (response) {
+                },
+                error: function (xhr) {
+                }
+            });
+        }
+    }
 </script>
 </body>
 </html>

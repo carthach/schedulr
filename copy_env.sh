@@ -4,7 +4,7 @@
 
 set -e
 
-sourceApp="getwishlist"
+sourceApp="getschedulr"
 targetApp="schedulr"
 
 while read key value; do

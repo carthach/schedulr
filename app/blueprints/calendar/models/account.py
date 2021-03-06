@@ -12,7 +12,7 @@ class Account(ResourceMixin, db.Model):
     # Objects.
     id = db.Column(db.Integer, primary_key=True)
     account_id = db.Column(db.BigInteger, unique=True, index=True, nullable=False)
-    calendar_account_id = db.Column(db.String(255), unique=True, index=True, nullable=True)
+    imported_account_id = db.Column(db.String(255), unique=False, index=True, nullable=True)
     email = db.Column(db.String(255), unique=True, index=True, nullable=False, server_default='')
     token = db.Column(db.String(255), nullable=True)
     refresh_token = db.Column(db.String(255), nullable=True)

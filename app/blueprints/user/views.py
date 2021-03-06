@@ -27,7 +27,14 @@ from lib.safe_next_url import safe_next_url
 from app.blueprints.user.decorators import anonymous_required
 
 # Functions
-from app.blueprints.calendar.functions import create_event, get_calendar_list, get_busy, get_calendar_ids_for_accounts
+from app.blueprints.calendar.functions import (
+    create_event,
+    get_calendar_list_from_api,
+    get_busy,
+    get_calendar_ids_for_accounts,
+    get_calendars_for_accounts,
+    update_calendar
+)
 
 # Models
 from app.blueprints.user.models.user import User
@@ -262,7 +269,7 @@ def calendar(event_id=None, username=None, tag=None):
 @cross_origin()
 def availability():
     a = Account.query.filter(Account.user_id == current_user.id).all()
-    accounts = [{'id': x.calendar_account_id, 'account': x.email, 'calendars': get_calendar_list(x.token, x.refresh_token)} for x in a]
+    accounts = get_calendars_for_accounts(a)
     if any(d['calendars'] == -1 for d in accounts):
         flash('There was a problem getting calendars. Please try again.', 'error')
         return redirect(url_for('user.availability'))
@@ -282,6 +289,20 @@ def update_availability():
 
         busy = get_busy(accounts, date, tz)
         return jsonify({'success': True, 'busy': busy})
+    return jsonify({'error': 'Error'})
+
+
+@user.route('/update_calendar_status/', methods=['POST'])
+@csrf.exempt
+@login_required
+@cross_origin()
+def update_calendar_status():
+    if request.method == 'POST':
+        calendar_id = request.form['calendar_id']
+        calendar_status = request.form['calendar_status']
+
+        update_calendar(calendar_id, calendar_status)
+        return jsonify({'success': True})
     return jsonify({'error': 'Error'})
 
 
@@ -311,7 +332,7 @@ def get_busy_times():
 def get_calendars():
     accounts = Account.query.filter(Account.user_id == current_user.id).all()
     for account in accounts:
-        calendars = get_calendar_list(account.token, account.refresh_token)
+        calendars = get_calendar_list_from_api(account.token, account.refresh_token)
 
     return redirect(url_for('user.availability'))
 
@@ -377,6 +398,8 @@ def confirm_event():
                     'zoom': request.form['zoom'],
                     'notes': request.form['notes']
             }
+
+            create_event()
 
             e = Event(u.id, None, **data)
             e.save()

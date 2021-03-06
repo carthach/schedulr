@@ -59,24 +59,32 @@ def get_credentials():
                 credentials.refresh(Request())
 
             # This user is already in the database, so we are refreshing the access token.
-            if db.session.query(exists().where(Account.calendar_account_id == info['id'])).scalar():
-                account = Account.query.filter(Account.calendar_account_id == info['id']).scalar()
+            if db.session.query(exists().where(Account.imported_account_id == info['id'])).scalar():
+                account = Account.query.filter(Account.imported_account_id == info['id']).scalar()
                 account.token = credentials.token
                 account.refresh_token = credentials.refresh_token
                 account.save()
+
+                # Create the calendars in the db for this account
+                from app.blueprints.calendar.functions import create_calendars_in_db
+                create_calendars_in_db(account.account_id, current_user.id, credentials.token, credentials.refresh_token)
             else:
                 account = Account()
                 account.user_id = current_user.id
-                account.calendar_account_id = info['id']
+                account.imported_account_id = info['id']
                 account.email = info['email']
                 account.token = credentials.token,
                 account.refresh_token = credentials.refresh_token
                 account.save()
 
+                # Create the calendars in the db for this account
+                from app.blueprints.calendar.functions import create_calendars_in_db
+                create_calendars_in_db(account.account_id, current_user.id, credentials.token, credentials.refresh_token)
+
             return True
         else:
             # Otherwise the account is already connected
-            pass# return 1
+            return 1
 
     except Exception as e:
         print_traceback(e)
