@@ -14,7 +14,7 @@ page = Blueprint('page', __name__, template_folder='templates')
 @cross_origin()
 def home():
     if current_user.is_authenticated:
-        return redirect(url_for('user.settings'))
+        return redirect(url_for('user.availability'))
 
     return render_template('page/index.html', plans=settings.STRIPE_PLANS)
 
