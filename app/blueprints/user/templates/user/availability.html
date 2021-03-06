@@ -274,7 +274,10 @@
         },
     });
 
+    // Hide the loader when the page loads
     HideLoader();
+    // Update the availability based on the preselected calendars
+    UpdateAvailability();
 
     function addDays(date, days) {
         var result = new Date(date);
@@ -325,8 +328,10 @@
 
     <!-- Update availability -->
     function UpdateAvailability(selectedDate=null, el=null){
+
         // Set the selected calendar's active status
-        SetActiveCalendar(el);
+        if (el !== null)
+            SetActiveCalendar(el);
 
         let checkboxes = document.getElementsByName('calendar-checkbox');
 
