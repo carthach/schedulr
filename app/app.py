@@ -86,7 +86,7 @@ def create_app(settings_override=None):
     app.config.from_pyfile('settings.py', silent=True)
 
     # Setting app server name and cookie domain
-    if os.environ.get('PRODUCTION') == 'true':
+    if os.environ.get('PRODUCTION') == 'True':
         # Set the app server name
         app.config['SERVER_NAME'] = 'getschedulr.com'
         app.config['REMEMBER_COOKIE_DOMAIN'] = '.getschedulr.com'
