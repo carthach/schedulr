@@ -1,13 +1,20 @@
-function generateAvailability(startTime, date, interval, busy=null) {
+function generateAvailability(startTime, endTime, date, interval, busy=null) {
     const period = 'm';
     let d = moment("23:59:59", "HH:mm:ss").diff(moment(startTime, "HH:mm:ss"), 'minutes');
     const periodsInADay = moment.duration(d, 'minutes').as(period);
 
     const times = [];
     const startTimeMoment = moment(startTime, 'hh:mm:ssZ');
+    const endTimeMoment = moment(endTime, 'hh:mm:ssZ');
 
     for (let i = 0; i <= periodsInADay; i += interval) {
+        // Get the Start Time moment
         startTimeMoment.add(i === 0 ? 0 : interval, period);
+
+        // If we've reached the end time, stop adding times
+        if (startTimeMoment.isSame(endTimeMoment) || startTimeMoment.isAfter(endTimeMoment))
+            break;
+
         if (busy !== null && busy.length > 0){
             let currentDateTime = moment(date).format('YYYY-MM-DD ' + startTimeMoment.format('HH:mm:ss') + 'Z');
             let exists = busy.some(x => moment(currentDateTime).isBetween(moment(JSON.stringify(x['start'])), moment(JSON.stringify(x['end']))) ||

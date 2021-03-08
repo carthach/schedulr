@@ -141,7 +141,7 @@
                                                     </div>
                                               </div>
                                               <ul class="relative z-0 divide-y divide-gray-200">
-                                              {% for calendar in account.calendars %}
+                                              {% for calendar in account.calendars|sort(attribute='name') %}
                                                     <li class="bg-white">
                                                       <div id="" class="relative px-6 py-2 flex items-center space-x-3 hover:bg-gray-50 {#focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500#}">
                                                         <div class="flex-shrink-0">
@@ -253,10 +253,11 @@
 <!-- Availability -->
 <script>
 
-    let interval = 15;
-    let startTime = '7:00';
+    let interval = 30;
+    let startTime = '8:00';
+    let endTime = '18:00';
     let day = new Date();
-    let myHours = generateAvailability(startTime, day, interval, null);
+    let myHours = generateAvailability(startTime, endTime, day, interval, null);
 
     var instance = $('#picker').markyourcalendar({
         availability: myHours,
@@ -318,7 +319,7 @@
         instance.setStartDate(day);
 
         if (busy !== null){
-            let hours = generateAvailability(startTime, day, interval, busy)
+            let hours = generateAvailability(startTime, endTime, day, interval, busy)
 
             if (hours.length > 0)
                 instance.setAvailability(hours);

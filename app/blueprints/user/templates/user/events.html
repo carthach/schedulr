@@ -71,9 +71,10 @@
                     <div class="grid md:grid-cols-1 sm:gap-4 lg:gap-6 sm:grid-cols-1 lg:grid-cols-1 mb-5">
                         <div class="col-span-1">
                             <div class="full">
-                                <span class="text-lg mb-1 mt-10 text-gray-700" style="font-size: 24px;">Event Types</span><br/>
+                                <span class="text-lg mb-1 mr-3 mt-10 text-gray-700" style="font-size: 24px;">Event Types</span><br />
+                                <span><a href="{{ url_for('user.create_event_type') }}" class="text-indigo-600 -underline">Create a new event type</a></span>
                             </div>
-                            <fieldset class="pt-8 w-full">
+                            <fieldset class="pt-4 w-full">
                                 <ul class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                                     {% if event_types|length > 0 %}
                                         {% for event in event_types %}
@@ -119,7 +120,7 @@
                                               </li>
                                         {% endfor %}
                                     {% endif %}
-                                        <li id="create-new" class="col-span-1 bg-white p-10 rounded-lg shadow divide-y divide-gray-200 text-center items-center justify-center text-indigo-600 hover:text-indigo-500">
+                                        <li id="create-new" style="display:none" class="col-span-1 bg-white p-10 rounded-lg shadow divide-y divide-gray-200 text-center items-center justify-center text-indigo-600 hover:text-indigo-500">
                                             <a href="{{ url_for('user.create_event_type') }}" class="">
                                                 <i class="fa fa-plus fa-3x block pt-5"></i>Create new
                                             </a>
