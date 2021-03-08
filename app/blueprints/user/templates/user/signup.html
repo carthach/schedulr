@@ -15,7 +15,7 @@
         <div class="block-content font-medium" style="width:50%;min-width:300px;max-width:350px;margin:0 auto;
     border:1px solid #c5c5c5;border-radius:4px; padding:20px;float:none;margin-top:50px; background-color:#fff;">
             {% call f.form_tag('user.signup') %}
-                <legend class="text-center">Sign up for {{ 'site'|site_name_filter|title }}</legend>
+                <legend class="text-center font-bold text-gray-700 text-3xl mb-3">Sign up for {{ 'site'|site_name_filter|title }}</legend>
                 {#<p>Please enter the email you want to use with this account and a password to set up your account.</p>#}
 
                 {% call f.form_group(form.name, css_class='sm-margin-bottom', autofocus='autofocus') %}

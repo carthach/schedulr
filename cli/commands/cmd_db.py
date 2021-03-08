@@ -112,6 +112,54 @@ def seed_events():
     return EventType(**event_type_15).save()
 
 
+@click.command()
+def seed_calendars():
+    u = User.query.filter(User.email == app.config['SEED_OWNER_EMAIL']).scalar()
+
+    account = {
+        'user_id': u.id,
+        'email': 'ricky@getschedulr.com'
+    }
+
+    a = Account(**account)
+    a.save()
+
+    calendar = {
+        'user_id': u.id,
+        'account_id': a.account_id,
+        'name': 'My Calendar',
+        'active': True
+    }
+
+    Calendar(**calendar).save()
+
+    calendar = {
+        'user_id': u.id,
+        'account_id': a.account_id,
+        'name': 'Other Appointments',
+        'active': True
+    }
+
+    Calendar(**calendar).save()
+
+    calendar = {
+        'user_id': u.id,
+        'account_id': a.account_id,
+        'name': 'Personal',
+        'active': False
+    }
+
+    Calendar(**calendar).save()
+
+    calendar = {
+        'user_id': u.id,
+        'account_id': a.account_id,
+        'name': 'Work',
+        'active': True
+    }
+
+    return Calendar(**calendar).save()
+
 # @click.command()
 # def seed_plans():
 #     """
@@ -178,6 +226,7 @@ def reset(ctx, with_testdb):
     ctx.invoke(seed_users)
     # ctx.invoke(seed_plans)
     ctx.invoke(seed_events)
+    ctx.invoke(seed_calendars)
 
     return None
 
@@ -200,4 +249,5 @@ cli.add_command(init)
 cli.add_command(seed_users)
 # cli.add_command(seed_plans)
 cli.add_command(seed_events)
+cli.add_command(seed_calendars)
 cli.add_command(reset)

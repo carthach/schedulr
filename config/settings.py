@@ -1,8 +1,8 @@
 from datetime import timedelta
 import os
-from celery.schedules import crontab
 
 PRODUCTION = os.environ.get('PRODUCTION', None)
+BETA = True
 
 SERVER_NAME = os.environ.get('SERVER_NAME', None)
 SITE_NAME = os.environ.get('SITE_NAME', None)
@@ -87,19 +87,12 @@ SEED_ADMIN_PASSWORD = os.environ.get('SEED_ADMIN_PASSWORD', None)
 SEED_MEMBER_EMAIL = ''
 REMEMBER_COOKIE_DURATION = timedelta(days=90)
 
-# Mailgun.
-# MAILGUN_LOGIN = os.environ.get('MAILGUN_LOGIN', None)
-# MAILGUN_PASSWORD = os.environ.get('MAILGUN_PASSWORD', None)
-# MAILGUN_HOST = os.environ.get('MAILGUN_HOST', None)
-# MAILGUN_DOMAIN = os.environ.get('MAILGUN_DOMAIN', None)
-# MAILGUN_API_KEY = os.environ.get('MAILGUN_API_KEY', None)
-
 # Turn off debug intercepts
 DEBUG_TB_INTERCEPT_REDIRECTS = False
 DEBUG_TB_ENABLED = False
 
 # Mailerlite
-# MAILERLITE_API_KEY = os.environ.get('MAILERLITE_API_KEY', None)
+MAILERLITE_API_KEY = os.environ.get('MAILERLITE_API_KEY', None)
 
 # Billing.
 STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', None)

@@ -1,9 +1,10 @@
 import requests, json
 from flask import current_app
+from pprint import pprint
 
 
 def create_subscriber(email):
-    url = "https://base.mailerlite.com/base/v2/groups/94534374/subscribers"
+    url = "https://base.mailerlite.com/base/v2/groups/106463104/subscribers"
 
     data = {
         'email': email,
@@ -18,7 +19,11 @@ def create_subscriber(email):
 
     response = requests.request("POST", url, data=payload, headers=headers)
 
-    print(response.text)
+    pprint(response.status_code)
+
+    if response.status_code == 200:
+        return True
+    return False
 
 
 def get_groups():

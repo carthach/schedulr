@@ -4,8 +4,8 @@
 
 set -e
 
-sourceApp="getschedulr"
-targetApp="schedulr"
+sourceApp="getwishlist"
+targetApp="getschedulr"
 
 while read key value; do
   key=${key%%:}
