@@ -8,6 +8,7 @@ import stripe
 import datetime
 import random
 from sqlalchemy import inspect
+from whitenoise import WhiteNoise
 from werkzeug.contrib.fixers import ProxyFix
 from flask import Flask, render_template, url_for, flash, redirect, request
 from celery import Celery
@@ -107,6 +108,9 @@ def create_app(settings_override=None):
 
     # CORS
     app.config['CORS_HEADERS'] = 'Content-Type'
+
+    # Whitenoise
+    app.wsgi_app = WhiteNoise(app.wsgi_app, root='static/')
 
     if settings_override:
         app.config.update(settings_override)
