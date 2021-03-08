@@ -33,6 +33,7 @@
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='tailwindcss/tailwind.css') }}">
 
     <!-- END Stylesheets -->
+
 </head>
 <body>
 {#{% include '/user/includes/mobile.html' ignore missing %}#}
@@ -115,7 +116,7 @@
                     <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                         <div class="py-1 align-middle inline-block min-w-full sm:px-6 lg:px-8">
                             <div style="width:650px;margin:0 auto; float:none;">
-                                <h1 class="mb-5 text-xl font-w700 text-gray-900">{{ event_type.title | title }}</h1>
+                                <h1 class="mb-5 text-xl font-w700 text-gray-900">{{ event_type.title | title }}<br /><small>{{ event_type.duration_minutes }} minutes</small></h1>
                                 <div id="calendar"></div>
                                 {% include '/user/includes/calendar.html' ignore missing %}
                             </div>
@@ -127,7 +128,7 @@
                     <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                         <div class="py-1 align-middle inline-block min-w-full sm:px-6 lg:px-8">
                             <div>
-                                <h1 class="mb-5 text-xl font-w700 text-gray-900">Available times</h1>
+                                <h1 class="mb-5 text-xl font-w700 text-gray-900">Available times:</h1>
                                 <div id="picker"></div>
                                 {% include '/user/includes/picker.html' ignore missing %}
                             </div>
@@ -245,6 +246,7 @@
 <script src="{{ url_for('static', filename='calendars/generate.js') }}"></script>
 <script src="{{ url_for('static', filename='javascript/dropdown.js') }}"></script>
 <script src="{{ url_for('static', filename='calendars/moment.js') }}"></script>
+<script src="{{ url_for('static', filename='calendars/moment-timezone.js') }}"></script>
 
 <script>
     function ShowDropdown(id) {
@@ -283,7 +285,8 @@
 <script>
     let user_id = '';
     let interval = 30;
-    let startTime = '7:00';
+    let startTime = '8:00';
+    let endTime = '18:00';
     let day = new Date();
 
     if (!(typeof '{{ event_type.duration_minutes }}' === 'undefined'))
@@ -292,7 +295,7 @@
     if (!(typeof '{{ event_type.user_id }}' === 'undefined'))
         user_id = parseInt('{{ event_type.user_id }}');
 
-    let myHours = generateAvailability(startTime, day, interval);
+    let myHours = generateAvailability(startTime, endTime, day, interval);
 
     var instance = $('#picker').markyourcalendar({
         availability: myHours,
@@ -322,13 +325,14 @@
         let h = String((date.getHours())).length === 1 ? '0' + date.getHours() : date.getHours();
         let m = String((date.getMinutes())).length === 1 ? '0' + date.getMinutes() : date.getMinutes();
         let t = h + ':' + m;
-        let tz = moment(date).format('Z')
+        let timezone = moment(date).format('Z');
+        let tz_string = moment.tz(moment.tz.guess()).zoneAbbr();
 
         document.getElementById('datetime').value = dt;
         document.getElementById('date').value = d;
         document.getElementById('start-time').value = t;
-        document.getElementById('tz-offset').value = tz;
-        return moment(date).format('dddd, MMMM Do, YYYY @ h:mm a');
+        document.getElementById('tz-offset').value = timezone;
+        return moment(date).format('dddd, MMMM Do, YYYY @ h:mm a z') + tz_string ;
     }
 
     <!-- FlatPickr -->
@@ -349,7 +353,7 @@
         instance.setStartDate(day);
 
         if (busy !== null){
-            let hours = generateAvailability(startTime, day, interval, busy)
+            let hours = generateAvailability(startTime, endTime, day, interval, busy)
 
             if (hours.length > 0)
                 instance.setAvailability(hours);
