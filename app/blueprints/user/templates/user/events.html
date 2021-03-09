@@ -84,7 +84,7 @@
                                                 <a href="{{ url_for('user.events', event_type_id=type_id ) }}" class="w-full flex items-center justify-between p-6 space-x-6">
                                                   <div class="flex-1 truncate">
                                                     <div class="flex items-center space-x-3">
-                                                        <h3 id="title-{{ type_id }}" class="text-gray-700 text-xl truncate">{{ event.title }}</h3>
+                                                        <h3 id="title-{{ type_id }}" class="text-gray-700 text-md truncate">{{ event.title }}</h3>
                                                         <span class=" text-{{ color }}-800 bg-{{ color }}-100 flex-shrink-0 inline-block px-2 py-0.5 text-xs font-medium rounded-full">
                                                             {% if event.active %}Active{% else %}Inactive{% endif %}
                                                         </span>
