@@ -15,11 +15,11 @@ SCOPES = ['https://www.googleapis.com/auth/calendar', 'https://www.googleapis.co
           'https://www.googleapis.com/auth/userinfo.email']
 
 
-def authorize():
+def authorize(r=None):
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
         'credentials.json', scopes=SCOPES)
 
-    flow.redirect_uri = current_app.config.get('GOOGLE_REDIRECT')
+    flow.redirect_uri = current_app.config.get('GOOGLE_REDIRECT') if r is None else current_app.config.get('SERVER_URL') + r
 
     authorization_url, state = flow.authorization_url(
         # Enable offline access so that you can refresh an access token without

@@ -56,7 +56,6 @@ from sqlalchemy import or_, and_, exists, inspect, func
 user = Blueprint('user', __name__, template_folder='templates')
 use_username = False
 
-
 """
 User
 """
@@ -67,6 +66,7 @@ User
 @anonymous_required()
 @csrf.exempt
 def login():
+    production = current_app.config.get('PRODUCTION')
     form = LoginForm(next=request.args.get('next'))
 
     if form.validate_on_submit():
@@ -140,7 +140,7 @@ def signup():
 
                 # Log the user in
                 flash("You've successfully signed up!", 'success')
-                return redirect(url_for('user.events'))
+                return redirect(url_for('user.setup'))
     except Exception as e:
         print_traceback(e)
 
@@ -338,13 +338,14 @@ def get_calendars():
 
 
 @user.route('/add_calendar/', methods=['GET', 'POST'])
+@user.route('/add_calendar/<r>', methods=['GET', 'POST'])
 @csrf.exempt
 @login_required
 @cross_origin()
-def add_calendar():
+def add_calendar(r=None):
     from app.blueprints.calendar.google.calendar import authorize
 
-    auth_url = authorize()
+    auth_url = authorize(r)
     return redirect(auth_url)
 
 """
@@ -352,7 +353,7 @@ Events
 """
 
 
-@user.route('/events/', methods=['GET', 'POST'])
+@user.route('/events', methods=['GET', 'POST'])
 @user.route('/events/<event_type_id>', methods=['GET', 'POST'])
 @csrf.exempt
 @cross_origin()
@@ -463,21 +464,18 @@ def save_event_type():
     return redirect(url_for('user.events'))
 
 
-# @user.route('/start', methods=['GET', 'POST'])
-# @user.route('/start/<shop_url>', methods=['GET', 'POST'])
-# @login_required
-# def start(shop_url):
-#     if not current_user.is_authenticated:
-#         return redirect(url_for('user.login'))
-#
-#     shop = Shop.query.filter(Shop.url == shop_url).scalar()
-#     if shop is None:
-#         return redirect(url_for('user.calendar'))
-#
-#     pending = Sync.query.filter(and_(Sync.destination_url == shop_url, Sync.active.is_(False))).all()
-#     plans = Plan.query.all()
-#
-#     return render_template('user/start.html', current_user=current_user, shop_id=shop.shop_id, pending=pending, plans=plans)
+@user.route('/setup', methods=['GET', 'POST'])
+@login_required
+def setup():
+    calendars = list()
+    if not current_user.is_authenticated:
+        return redirect(url_for('user.login'))
+
+    account = Account.query.filter(Account.user_id == current_user.id).first()
+
+    if account is not None and account.token and account.refresh_token:
+        calendars = get_calendar_list_from_api(account.token, account.refresh_token)
+    return render_template('user/setup.html', current_user=current_user, calendars=calendars)
 
 
 # Settings -------------------------------------------------------------------

@@ -32,7 +32,7 @@
                     </div>
                     <div class="col-md-6">
                         <div class="visible-xs visible-sm sm-margin-top"></div>
-                        <a {#href="{{ url_for('user.signup') }}"#} href="#"
+                        <a {% if production == true %}href="#" {% else %}href="{{ url_for('user.signup') }}" {% endif %}
                            class="btn btn-default btn-block">
                             Sign Up
                         </a>

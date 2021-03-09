@@ -37,7 +37,7 @@ class SignupForm(ModelForm):
 
     username = StringField(validators=[
         Unique(User.username, get_session=lambda: db.session, message='This username is already taken!'),
-        Regexp('^\w+$', message="Username must contain only letters or numbers."),
+        Regexp('^\w+$', message="Username must contain only letters or numbers.")
     ])
 
     email = EmailField(validators=[
