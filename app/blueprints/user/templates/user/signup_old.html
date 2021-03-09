@@ -1,0 +1,63 @@
+{% extends 'layouts/app.html' %}
+{% import 'macros/form.html' as f with context %}
+
+{% block title %}Sign Up - {{ 'site_name'|site_name_filter }}{% endblock %}
+
+{% block body %}
+    <head>
+        <!-- Tailwind CSS -->
+        <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+
+        <!-- Icons -->
+        <link rel=stylesheet type=text/css href="{{ url_for('static', filename='icons/styles.css') }}">
+    </head>
+    <div class="row">
+        <div class="block-content font-medium" style="width:80%;min-width:300px;max-width:500px;margin:0 auto;
+    border:1px solid #c5c5c5;border-radius:4px; padding:20px;float:none;margin-top:50px; background-color:#fff;">
+            {% call f.form_tag('user.signup') %}
+                <legend class="text-center font-bold text-gray-700 text-3xl mb-3 pb-5">Sign up for {{ 'site'|site_name_filter|title }}</legend>
+                {#<p>Please enter the email you want to use with this account and a password to set up your account.</p>#}
+
+                {% call f.form_group(form.name, css_class='sm-margin-bottom sm-margin-top', autofocus='autofocus') %}
+                {% endcall %}
+
+                {% call f.form_group(form.username, css_class='sm-margin-bottom') %}
+                {% endcall %}
+
+                {% call f.form_group(form.email, css_class='sm-margin-bottom') %}
+                {% endcall %}
+
+                {% call f.form_group(form.password, css_class='sm-margin-bottom') %}
+                {% endcall %}
+
+                <p id="calendar-div" class="truncate" style="display:none;margin-bottom:25px;width:100%;">Your custom calendar link will be:<br />
+                {{ ''|site_url_filter() }}/<span id="calendar-link" class="mb-2"></span>/calendar</p>
+
+                <div class="row">
+                    <div class="col-md-6" style="float:none;margin:0 auto;">
+                        <button type="submit" class="btn btn-block bg-indigo-500 text-white-800">
+                            <span style="color:white">Sign up</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="row"><br/></div>
+            {% endcall %}<br/>
+            <p>Already have an account? <a class="text-indigo-500" href="{{ url_for('user.login') }}"><u>Login</u></a> instead.</p><br />
+            <small>By signing up you agree to our <a class="text-indigo-500" href="{{ url_for('page.privacy') }}"><u>Privacy Policy</u></a> and <a
+                    class="text-indigo-500" href="{{ url_for('page.terms') }}"><u>Terms of Service</u></a></small>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById("username").addEventListener("input", function(e){
+            if (document.getElementById("username").value === ''){
+                document.getElementById("calendar-div").style.display = 'none';
+            }
+            else{
+                document.getElementById("calendar-div").style.display = '';
+            }
+
+            document.getElementById("calendar-link").innerText = document.getElementById("username").value.toLowerCase().replace(/[^0-9a-z]+/g, '');
+        });
+    </script>
+{% endblock %}

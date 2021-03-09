@@ -50,7 +50,7 @@ def create():
 
         # Guard against an invalid or missing plan.
         if subscription_plan is None and request.method == 'GET':
-            flash('Sorry, that plan did not exist.', 'error')
+            flash('Sorry, that plan did not exist.', 'danger')
             return redirect(url_for('billing.pricing'))
 
         stripe_key = current_app.config.get('STRIPE_PUBLISHABLE_KEY')
@@ -85,7 +85,7 @@ def create():
                                form=form, plan=subscription_plan)
     except Exception as e:
 
-        flash('There was an error. We weren\'t able to subscribe you to a plan at this time.', 'error')
+        flash('There was an error. We weren\'t able to subscribe you to a plan at this time.', 'danger')
         return redirect(url_for('user.calendar'))
 
 
@@ -132,7 +132,7 @@ def update():
                                active_plan=active_plan)
     except Exception as e:
 
-        flash('There was an error. We weren\'t able to change your plan at this time.', 'error')
+        flash('There was an error. We weren\'t able to change your plan at this time.', 'danger')
         return redirect(url_for('user.calendar'))
 
 
@@ -193,7 +193,7 @@ def cancel():
 @csrf.exempt
 def update_payment_method():
     if not current_user.credit_card:
-        flash('You do not have a payment method on file.', 'error')
+        flash('You do not have a payment method on file.', 'danger')
         return redirect(url_for('user.calendar'))
 
     active_plan = Subscription.get_plan_by_id(

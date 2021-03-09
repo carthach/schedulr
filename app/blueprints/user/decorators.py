@@ -38,7 +38,7 @@ def role_required(*roles):
         @wraps(f)
         def decorated_function(*args, **kwargs):
             if current_user.role not in roles:
-                flash('You do not have permission to do that.', 'error')
+                flash('You do not have permission to do that.', 'danger')
                 return redirect('/')
 
             return f(*args, **kwargs)

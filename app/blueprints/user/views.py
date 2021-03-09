@@ -92,9 +92,9 @@ def login():
                 if current_user.role == 'admin':
                     return redirect(url_for('admin.dashboard'))
             else:
-                flash('This account has been disabled.', 'error')
+                flash('This account has been disabled.', 'danger')
         else:
-            flash('Your username/email or password is incorrect.', 'error')
+            flash('Your username/email or password is incorrect.', 'danger')
 
     else:
         if len(form.errors) > 0:
@@ -119,7 +119,7 @@ def signup():
         if form.validate_on_submit():
             if db.session.query(exists().where(User.email == request.form.get('email'))).scalar():
                 flash(Markup("There is already an account using this email. Please use another or <a href='" + url_for(
-                    'user.login') + "'><span class='text-indigo-700'><u>login</span></u></a>."), category='error')
+                    'user.login') + "'><span class='text-indigo-700'><u>login</span></u></a>."), category='danger')
                 return redirect(url_for('user.signup'))
 
             u = User()
@@ -179,7 +179,7 @@ def password_reset():
 
         if u is None:
             flash('Your reset token has expired or was tampered with.',
-                  'error')
+                  'danger')
             return redirect(url_for('user.begin_password_reset'))
 
         form.populate_obj(u)
@@ -271,7 +271,7 @@ def availability():
     a = Account.query.filter(Account.user_id == current_user.id).all()
     accounts = get_calendars_for_accounts(a)
     if any(d['calendars'] == -1 for d in accounts):
-        flash('There was a problem getting calendars. Please try again.', 'error')
+        flash('There was a problem getting calendars. Please try again.', 'danger')
         return redirect(url_for('user.availability'))
 
     return render_template('user/availability.html', current_user=current_user, accounts=accounts)
@@ -379,13 +379,13 @@ def confirm_event():
             # Get the event type from the database
             event_type = EventType.query.filter(EventType.event_type_id == request.form['event-type-id']).scalar()
             if event_type is None:
-                flash("There was an error creating this event. Please try again.", 'error')
+                flash("There was an error creating this event. Please try again.", 'danger')
                 return redirect(url_for('user.events'))
 
             # Get the user that owns this event type
             u = User.query.filter(User.id == event_type.user_id).scalar()
             if u is None:
-                flash("There was an error creating this event. Please try again.", 'error')
+                flash("There was an error creating this event. Please try again.", 'danger')
                 return redirect(url_for('user.events'))
 
             data = {'event_type_id': request.form['event-type-id'],
@@ -467,15 +467,24 @@ def save_event_type():
 @user.route('/setup', methods=['GET', 'POST'])
 @login_required
 def setup():
-    calendars = list()
-    if not current_user.is_authenticated:
-        return redirect(url_for('user.login'))
+    form = UpdateCredentials(current_user, uid=current_user.id)
+    if request.method == 'POST':
+        if 'username' in request.form:
+            username = request.form['username']
 
-    account = Account.query.filter(Account.user_id == current_user.id).first()
+            if db.session.query(exists().where(User.username == username)).scalar():
+                render_template('user/setup.html', current_user=current_user, form=form)
+    else:
+        calendars = list()
+        if not current_user.is_authenticated:
+            return redirect(url_for('user.login'))
 
-    if account is not None and account.token and account.refresh_token:
-        calendars = get_calendar_list_from_api(account.token, account.refresh_token)
-    return render_template('user/setup.html', current_user=current_user, calendars=calendars)
+        account = Account.query.filter(Account.user_id == current_user.id).first()
+
+        if account is not None and account.token and account.refresh_token:
+            calendars = get_calendar_list_from_api(account.token, account.refresh_token)
+        return render_template('user/setup.html', current_user=current_user, calendars=calendars, form=form)
+    return redirect(url_for('user.availability'))
 
 
 # Settings -------------------------------------------------------------------

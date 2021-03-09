@@ -16,7 +16,7 @@ def google_auth():
     elif result == 1:
         flash("This account has already been connected.", 'warning')
     else:
-        flash("There was a problem adding your account. Please try again.", 'error')
+        flash("There was a problem adding your account. Please try again.", 'danger')
 
     return redirect(url_for('user.availability'))
 

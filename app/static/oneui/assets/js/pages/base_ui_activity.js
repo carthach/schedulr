@@ -38,7 +38,7 @@ var BaseUIActivity = function() {
 
         // Init an error alert on button click
         jQuery('.js-swal-error').on('click', function(){
-            swal('Oops...', 'Something went wrong!', 'error');
+            swal('Oops...', 'Something went wrong!', 'danger');
         });
 
         // Init an example confirm alert on button click

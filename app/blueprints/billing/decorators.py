@@ -36,26 +36,26 @@ def handle_stripe_exceptions(f):
         try:
             return f(*args, **kwargs)
         except stripe.error.CardError:
-            flash('Sorry, your card was declined. Try again perhaps?', 'error')
+            flash('Sorry, your card was declined. Try again perhaps?', 'danger')
             return redirect(url_for('user.calendar'))
         except stripe.error.InvalidRequestError as e:
-            flash(e, 'error')
+            flash(e, 'danger')
             return redirect(url_for('user.calendar'))
         except stripe.error.AuthenticationError as e:
-            flash('Authentication with Stripe failed. Please try again later.', 'error')
+            flash('Authentication with Stripe failed. Please try again later.', 'danger')
             return redirect(url_for('user.calendar'))
         except stripe.error.APIError as e:
-            flash('There was an error while connecting to Stripe. Please try again.', 'error')
+            flash('There was an error while connecting to Stripe. Please try again.', 'danger')
             return redirect(url_for('user.calendar'))
         except stripe.error.APIConnectionError:
             flash(
                 'Our payment gateway is experiencing connectivity issues'
-                ', please try again.', 'error')
+                ', please try again.', 'danger')
             return redirect(url_for('user.calendar'))
         except stripe.error.StripeError:
             flash(
                 'Our payment gateway is having issues, please try again.',
-                'error')
+                'danger')
             return redirect(url_for('user.calendar'))
 
     return decorated_function
