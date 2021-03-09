@@ -218,6 +218,42 @@ def update_credentials():
 
 
 """
+Settings and Setup
+"""
+
+
+@user.route('/settings', methods=['GET', 'POST'])
+@login_required
+@csrf.exempt
+def settings():
+    return render_template('user/settings.html', current_user=current_user)
+
+
+@user.route('/setup', methods=['GET', 'POST'])
+@login_required
+def setup():
+    form = UpdateCredentials(current_user, uid=current_user.id)
+    if request.method == 'POST':
+        if 'username' in request.form:
+            username = request.form['username']
+
+            if db.session.query(exists().where(and_(User.username == username, User.id != current_user.id))).scalar():
+                flash("This username is already in use. Please try a different one.", 'danger')
+                render_template('user/setup.html', current_user=current_user, form=form)
+    else:
+        calendars = list()
+        if not current_user.is_authenticated:
+            return redirect(url_for('user.login'))
+
+        account = Account.query.filter(Account.user_id == current_user.id).first()
+
+        if account is not None and account.token and account.refresh_token:
+            calendars = get_calendar_list_from_api(account.token, account.refresh_token)
+        return render_template('user/setup.html', current_user=current_user, calendars=calendars, form=form)
+    return redirect(url_for('user.availability'))
+
+
+"""
 Calendars
 """
 
@@ -348,6 +384,7 @@ def add_calendar(r=None):
     auth_url = authorize(r)
     return redirect(auth_url)
 
+
 """
 Events
 """
@@ -462,37 +499,6 @@ def save_event_type():
                     e.tag = tag
                     e.save()
     return redirect(url_for('user.events'))
-
-
-@user.route('/setup', methods=['GET', 'POST'])
-@login_required
-def setup():
-    form = UpdateCredentials(current_user, uid=current_user.id)
-    if request.method == 'POST':
-        if 'username' in request.form:
-            username = request.form['username']
-
-            if db.session.query(exists().where(User.username == username)).scalar():
-                render_template('user/setup.html', current_user=current_user, form=form)
-    else:
-        calendars = list()
-        if not current_user.is_authenticated:
-            return redirect(url_for('user.login'))
-
-        account = Account.query.filter(Account.user_id == current_user.id).first()
-
-        if account is not None and account.token and account.refresh_token:
-            calendars = get_calendar_list_from_api(account.token, account.refresh_token)
-        return render_template('user/setup.html', current_user=current_user, calendars=calendars, form=form)
-    return redirect(url_for('user.availability'))
-
-
-# Settings -------------------------------------------------------------------
-@user.route('/settings', methods=['GET', 'POST'])
-@login_required
-@csrf.exempt
-def settings():
-    return render_template('user/settings.html', current_user=current_user)
 
 
 # Actions -------------------------------------------------------------------

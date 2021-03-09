@@ -101,9 +101,9 @@
                                                     {% else %}
                                                         <span class="block text-sm leading-5 font-medium text-gray-700 mb-10">Import your calendars so that {{ ''|site_name_filter() }} can calculate your available times for meetings.</span>
                                                         <a href="{{ url_for('user.add_calendar', r='setup') }}" class="mb-4 inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                                                            <img class="mr-2 w-5 h-5 bg-gray-300 flex-shrink-0" src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Google_Calendar_icon_%282020%29.svg/1200px-Google_Calendar_icon_%282020%29.svg.png" />Connect a Google Account
+                                                            <img class="mr-2 w-5 h-5 bg-gray-300 flex-shrink-0" src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Google_Calendar_icon_%282020%29.svg/1200px-Google_Calendar_icon_%282020%29.svg.png" />Connect a Google account
                                                         </a>
-                                                        <a href="#" class="mb-4 inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                                        <a href="#" class="mb-4 inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-300 bg-white hover:bg-gray-50 focus:outline-none cursor-none">
                                                             <img class="mr-2 w-5 h-5 bg-gray-300 flex-shrink-0" src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Microsoft_Office_Outlook_%282018%E2%80%93present%29.svg/1200px-Microsoft_Office_Outlook_%282018%E2%80%93present%29.svg.png" />Connect Microsoft Outlook (coming soon)
                                                         </a>
                                                     {% endif %}
