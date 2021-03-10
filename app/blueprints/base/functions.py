@@ -115,6 +115,17 @@ def set_inactive(current_user):
     current_user.save()
 
 
+def update_username(user_id, username):
+    try:
+        u = User.query.filter(User.id == user_id).scalar()
+        u.username = username
+        u.save()
+
+        return True
+    except Exception:
+        return False
+
+
 # Other ###################################################
 def print_traceback(e):
     traceback.print_tb(e.__traceback__)

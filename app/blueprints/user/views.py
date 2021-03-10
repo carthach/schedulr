@@ -37,6 +37,10 @@ from app.blueprints.calendar.functions import (
     update_calendar
 )
 
+from app.blueprints.base.functions import (
+    update_username
+)
+
 # Models
 from app.blueprints.user.models.user import User
 from app.blueprints.calendar.models.account import Account
@@ -227,7 +231,8 @@ Settings and Setup
 @login_required
 @csrf.exempt
 def settings():
-    return render_template('user/settings.html', current_user=current_user)
+    accounts = Account.query.filter(Account.user_id == current_user.id).all()
+    return render_template('user/settings.html', current_user=current_user, accounts=accounts)
 
 
 @user.route('/setup', methods=['GET', 'POST'])
@@ -248,7 +253,7 @@ def setup():
                 account = Account.query.filter(Account.user_id == current_user.id).first()
 
                 if account is not None and account.token and account.refresh_token:
-                    calendars = get_calendar_list_from_api(account.token, account.refresh_token)
+                    connected_calendars = get_calendar_list_from_api(account.token, account.refresh_token)
 
                 flash("Successfully added your account.", 'success')
             elif result == 1:
@@ -262,7 +267,7 @@ def setup():
         account = Account.query.filter(Account.user_id == current_user.id).first()
 
         if account is not None and account.token and account.refresh_token:
-            calendars = get_calendar_list_from_api(account.token, account.refresh_token)
+            connected_calendars = get_calendar_list_from_api(account.token, account.refresh_token)
 
     return render_template('user/setup.html', current_user=current_user, calendars=connected_calendars, form=form)
 
@@ -271,17 +276,18 @@ def setup():
 @login_required
 @csrf.exempt
 def finish_setup():
-    print(request.method)
-    form = UpdateCredentials(current_user, uid=current_user.id)
     if request.method == 'POST':
-        print(request.form)
         if 'username' in request.form:
             username = request.form['username']
 
             if db.session.query(exists().where(and_(User.username == username, User.id != current_user.id))).scalar():
                 flash("This username is already in use. Please try a different one.", 'danger')
-                render_template('user/setup.html', current_user=current_user, form=form)
-
+                return redirect(url_for('user.setup'))
+            else:
+                if update_username(current_user.id, username):
+                    flash("Your account has been successfully set up.", 'success')
+                else:
+                    flash("There was an error setting up your username. You can change it in settings.", 'danger')
     return redirect(url_for('user.availability'))
 
 
@@ -360,16 +366,16 @@ def update_availability():
     return jsonify({'error': 'Error'})
 
 
-@user.route('/update_calendar_status', methods=['POST'])
+@user.route('/update_primary_calendar', methods=['POST'])
 @csrf.exempt
 @login_required
 @cross_origin()
-def update_calendar_status():
+def update_primary_calendar():
     if request.method == 'POST':
         calendar_id = request.form['calendar_id']
-        calendar_status = request.form['calendar_status']
+        primary = request.form['primary']
 
-        update_calendar(calendar_id, calendar_status)
+        update_calendar(calendar_id, primary)
         return jsonify({'success': True})
     return jsonify({'error': 'Error'})
 

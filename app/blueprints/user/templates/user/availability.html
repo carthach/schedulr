@@ -119,7 +119,7 @@
                     <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                         <div class="py-1 align-middle inline-block min-w-full sm:px-6 lg:px-8">
                             <div>
-                                <h1 class="mb-5 text-xl font-w700 text-gray-900">1. Choose calendars</h1>
+                                <h1 class="mb-5 text-xl font-w700 text-gray-900">1. Select a primary calendar</h1>
                                 <!-- This example requires Tailwind CSS v2.0+ -->
                                 <a href="{{ url_for('user.add_calendar') }}" class="col-span-1">
                                     <div class=" mb-5 w-full flex items-center justify-between p-6 space-x-6 bg-white rounded-lg shadow divide-y divide-gray-200">
@@ -146,7 +146,7 @@
                                                       <div id="" class="relative px-6 py-2 flex items-center space-x-3 hover:bg-gray-50 {#focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500#}">
                                                         <div class="flex-shrink-0">
                                                             <div class="flex items-center h-5">
-                                                                <input id="{{ calendar.id }}" {% if calendar.active %}checked{% endif %} name="calendar-checkbox" data-calendar="{{ calendar.calendar_id }}" data-account="{{ account.id }}" style="z-index:999" type="checkbox"
+                                                                <input id="{{ calendar.id }}" {% if calendar.primary %}checked{% endif %} name="calendar-checkbox" data-calendar="{{ calendar.calendar_id }}" data-account="{{ account.id }}" style="z-index:999" type="checkbox"
                                                                        class="cursor-pointer focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
                                                                 onchange="UpdateAvailability(null, this);">
                                                             </div>
@@ -330,11 +330,19 @@
     <!-- Update availability -->
     function UpdateAvailability(selectedDate=null, el=null){
 
+        // Get the checkboxes
+        let checkboxes = document.getElementsByName('calendar-checkbox');
+        let checked = [];
+
         // Set the selected calendar's active status
         if (el !== null)
-            SetActiveCalendar(el);
+            // Cancel the action if trying to uncheck the only selected calendar
+            if ($("input:checkbox[name='calendar-checkbox']:checked").length === 0){
+                el.checked = true;
+                return false;
+            }
 
-        let checkboxes = document.getElementsByName('calendar-checkbox');
+            SetPrimaryCalendar(el, checkboxes);
 
         // Update the instance
         if (selectedDate !== null){
@@ -344,7 +352,6 @@
         let date = instance.getStartDate();
         let tz_offset = instance.getTZOffset();
 
-        let checked = [];
         for (let i=0; i < checkboxes.length; i++) {
              if (checkboxes[i].checked) {
                  checked.push({'id': checkboxes[i].id, 'account': checkboxes[i].dataset.account });
@@ -370,13 +377,22 @@
         //Reload();
     }
 
-    function SetActiveCalendar(el){
+    function SetPrimaryCalendar(el, checkboxes){
         if (el !== null){
-            let active = el.checked;
+            let primary = el.checked;
+
+            // Unset the other checkboxes
+            for (let i = 0; i < checkboxes.length; i++){
+                if (checkboxes[i] !== el){
+                    checkboxes[i].checked = false;
+                }
+            }
+
+            // Update the primary calendar in the DB
             $.ajax({
-                url: "{{ url_for('user.update_calendar_status') }}",
+                url: "{{ url_for('user.update_primary_calendar') }}",
                 type: 'POST',
-                data: {'calendar_id': el.dataset.calendar, 'calendar_status': active},
+                data: {'calendar_id': el.dataset.calendar, 'primary': primary},
                 success: function (response) {
                 },
                 error: function (xhr) {

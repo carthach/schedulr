@@ -3,6 +3,7 @@ import google
 import datetime
 from pprint import pprint
 import itertools
+from sqlalchemy import and_
 from app.blueprints.base.functions import print_traceback
 from app.blueprints.calendar.google.calendar import create_calendar_service, refresh_token
 from app.blueprints.calendar.models.account import Account
@@ -80,7 +81,7 @@ def create_calendars_in_db(account_id, user_id, token, refresh):
 def get_calendar_list_from_db(account):
     calendars = Calendar.query.filter(Calendar.account_id == account.account_id).all()
     return [{'name': c.name, 'id': c.imported_calendar_id,
-             'calendar_id': c.calendar_id, 'active': c.active} for c in calendars]
+             'calendar_id': c.calendar_id, 'primary': c.primary} for c in calendars]
 
 
 def get_calendar_list_from_api(token, refresh):
@@ -126,14 +127,26 @@ def get_calendar_ids_for_accounts(accounts):
     return calendar_ids
 
 
-def update_calendar(calendar_id, calendar_status):
-    c = Calendar.query.filter(Calendar.calendar_id == calendar_id).scalar()
-    if c is None:
-        return
+def update_calendar(calendar_id, p):
+    try:
+        c = Calendar.query.filter(Calendar.calendar_id == calendar_id).scalar()
+        if c is None:
+            return
 
-    active = True if calendar_status == 'true' else False
-    c.active = active
-    c.save()
+        a = Account.query.filter(Account.account_id == c.account_id).scalar()
+        if a is None:
+            return
+
+        primary = True if p == 'true' else False
+        c.primary = primary
+        c.save()
+
+        other = Calendar.query.filter(and_(Calendar.account_id == a.account_id, Calendar.calendar_id != calendar_id)).all()
+        for calendar in other:
+            calendar.primary = False
+            calendar.save()
+    except Exception:
+        return
 
 
 def get_events(calendar):
