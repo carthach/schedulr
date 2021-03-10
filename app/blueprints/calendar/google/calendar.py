@@ -15,7 +15,7 @@ SCOPES = ['https://www.googleapis.com/auth/calendar', 'https://www.googleapis.co
           'https://www.googleapis.com/auth/userinfo.email']
 
 
-def authorize(r=None):
+def authorize_google_account(r=None):
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
         'credentials.json', scopes=SCOPES)
 
@@ -32,11 +32,11 @@ def authorize(r=None):
     return authorization_url
 
 
-def get_credentials():
+def save_google_credentials(r=None):
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
         'credentials.json',
         scopes=SCOPES)
-    flow.redirect_uri = current_app.config.get('GOOGLE_REDIRECT')
+    flow.redirect_uri = current_app.config.get('GOOGLE_REDIRECT') if r is None else current_app.config.get('SERVER_URL') + r
 
     authorization_response = request.url
     flow.fetch_token(authorization_response=authorization_response)

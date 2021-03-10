@@ -21,6 +21,7 @@ import random
 import requests
 from pprint import pprint
 from operator import attrgetter
+import oauthlib
 from flask_cors import cross_origin
 from flask_paginate import Pagination, get_page_args
 from lib.safe_next_url import safe_next_url
@@ -140,7 +141,7 @@ def signup():
 
                 # Log the user in
                 flash("You've successfully signed up!", 'success')
-                return redirect(url_for('user.setup'))
+                return redirect(url_for('user.setup', new=True))
     except Exception as e:
         print_traceback(e)
 
@@ -231,25 +232,56 @@ def settings():
 
 @user.route('/setup', methods=['GET', 'POST'])
 @login_required
+@csrf.exempt
 def setup():
     form = UpdateCredentials(current_user, uid=current_user.id)
+    connected_calendars = list()
+    if not current_user.is_authenticated:
+        return redirect(url_for('user.login'))
+
+    if request.args.get('code'):
+        try:
+            from app.blueprints.calendar.google.calendar import save_google_credentials
+            result = save_google_credentials('setup')
+
+            if result:
+                account = Account.query.filter(Account.user_id == current_user.id).first()
+
+                if account is not None and account.token and account.refresh_token:
+                    calendars = get_calendar_list_from_api(account.token, account.refresh_token)
+
+                flash("Successfully added your account.", 'success')
+            elif result == 1:
+                flash("This account has already been connected.", 'warning')
+            else:
+                flash("There was a problem adding your account. Please try again.", 'danger')
+            return render_template('user/setup.html', current_user=current_user, calendars=connected_calendars, form=form)
+        except oauthlib.oauth2.rfc6749.errors.InvalidGrantError:
+            return redirect(url_for('user.setup'))
+    else:
+        account = Account.query.filter(Account.user_id == current_user.id).first()
+
+        if account is not None and account.token and account.refresh_token:
+            calendars = get_calendar_list_from_api(account.token, account.refresh_token)
+
+    return render_template('user/setup.html', current_user=current_user, calendars=connected_calendars, form=form)
+
+
+@user.route('/finish_setup', methods=['GET', 'POST'])
+@login_required
+@csrf.exempt
+def finish_setup():
+    print(request.method)
+    form = UpdateCredentials(current_user, uid=current_user.id)
     if request.method == 'POST':
+        print(request.form)
         if 'username' in request.form:
             username = request.form['username']
 
             if db.session.query(exists().where(and_(User.username == username, User.id != current_user.id))).scalar():
                 flash("This username is already in use. Please try a different one.", 'danger')
                 render_template('user/setup.html', current_user=current_user, form=form)
-    else:
-        calendars = list()
-        if not current_user.is_authenticated:
-            return redirect(url_for('user.login'))
 
-        account = Account.query.filter(Account.user_id == current_user.id).first()
-
-        if account is not None and account.token and account.refresh_token:
-            calendars = get_calendar_list_from_api(account.token, account.refresh_token)
-        return render_template('user/setup.html', current_user=current_user, calendars=calendars, form=form)
     return redirect(url_for('user.availability'))
 
 
@@ -299,7 +331,7 @@ def calendar(event_id=None, username=None, tag=None):
     return redirect(url_for('user.events'))
 
 
-@user.route('/availability/', methods=['GET', 'POST'])
+@user.route('/availability', methods=['GET', 'POST'])
 @csrf.exempt
 @login_required
 @cross_origin()
@@ -313,7 +345,7 @@ def availability():
     return render_template('user/availability.html', current_user=current_user, accounts=accounts)
 
 
-@user.route('/update_availability/', methods=['POST'])
+@user.route('/update_availability', methods=['POST'])
 @csrf.exempt
 @login_required
 @cross_origin()
@@ -328,7 +360,7 @@ def update_availability():
     return jsonify({'error': 'Error'})
 
 
-@user.route('/update_calendar_status/', methods=['POST'])
+@user.route('/update_calendar_status', methods=['POST'])
 @csrf.exempt
 @login_required
 @cross_origin()
@@ -342,7 +374,7 @@ def update_calendar_status():
     return jsonify({'error': 'Error'})
 
 
-@user.route('/get_busy_times/', methods=['POST'])
+@user.route('/get_busy_times', methods=['POST'])
 @csrf.exempt
 @login_required
 @cross_origin()
@@ -362,7 +394,7 @@ def get_busy_times():
     return jsonify({'error': 'Error'})
 
 
-@user.route('/get_calendars/', methods=['GET', 'POST'])
+@user.route('/get_calendars', methods=['GET', 'POST'])
 @csrf.exempt
 @cross_origin()
 def get_calendars():
@@ -373,15 +405,15 @@ def get_calendars():
     return redirect(url_for('user.availability'))
 
 
-@user.route('/add_calendar/', methods=['GET', 'POST'])
+@user.route('/add_calendar', methods=['GET', 'POST'])
 @user.route('/add_calendar/<r>', methods=['GET', 'POST'])
 @csrf.exempt
 @login_required
 @cross_origin()
 def add_calendar(r=None):
-    from app.blueprints.calendar.google.calendar import authorize
+    from app.blueprints.calendar.google.calendar import authorize_google_account
 
-    auth_url = authorize(r)
+    auth_url = authorize_google_account(r)
     return redirect(auth_url)
 
 
@@ -451,7 +483,7 @@ Event Types
 """
 
 
-@user.route('/create_event_type/', methods=['GET', 'POST'])
+@user.route('/create_event_type', methods=['GET', 'POST'])
 @csrf.exempt
 @cross_origin()
 def create_event_type():

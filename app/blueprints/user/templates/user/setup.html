@@ -74,7 +74,7 @@
                       Tailwind UI components require Tailwind CSS v1.8 and the @tailwindcss/ui plugin.
                       Read the documentation to get started: https://tailwindui.com/documentation
                     -->
-                    <form action="{{ url_for('user.setup') }}" method="POST">
+                    <form action="{{ url_for('user.finish_setup') }}" method="POST">
                         <div class="rounded-lg bg-white border border-gray-200 pb-10 pl-7 pr-7">
                             <div class="mt-3 sm:mt-5 sm:pt-5">
                                 <div>
@@ -92,7 +92,7 @@
                                                         <span class="block text-sm leading-5 font-medium text-gray-700 mb-1">Choose your primary calendar</span>
                                                         <span class="block text-sm leading-5 font-medium text-gray-500 mb-5">This will be the calendar we use when checking your availability and scheduling meetings.</span>
                                                         <div>
-                                                            <select id="location" name="location" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                                                            <select id="location" name="location" class="mt-1 mb-5 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
                                                                 {% for calendar in calendars %}
                                                                     <option id="{{ calendar.imported_calendar_id }}">{{ calendar.name }}</option>
                                                                 {% endfor %}
@@ -103,10 +103,10 @@
                                                         <a href="{{ url_for('user.add_calendar', r='setup') }}" class="mb-4 inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                                                             <img class="mr-2 w-5 h-5 bg-gray-300 flex-shrink-0" src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Google_Calendar_icon_%282020%29.svg/1200px-Google_Calendar_icon_%282020%29.svg.png" />Connect a Google account
                                                         </a>
-                                                        <a href="#" class="mb-4 inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-300 bg-white hover:bg-gray-50 focus:outline-none cursor-none">
-                                                            <img class="mr-2 w-5 h-5 bg-gray-300 flex-shrink-0" src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Microsoft_Office_Outlook_%282018%E2%80%93present%29.svg/1200px-Microsoft_Office_Outlook_%282018%E2%80%93present%29.svg.png" />Connect Microsoft Outlook (coming soon)
-                                                        </a>
                                                     {% endif %}
+                                                    <a href="#" class="mb-4 inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-300 bg-white hover:bg-gray-50 focus:outline-none cursor-none">
+                                                        <img class="mr-2 w-5 h-5 bg-gray-300 flex-shrink-0" src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Microsoft_Office_Outlook_%282018%E2%80%93present%29.svg/1200px-Microsoft_Office_Outlook_%282018%E2%80%93present%29.svg.png" />Connect Microsoft Outlook (coming soon)
+                                                    </a>
                                                 </div>
                                             </div>
                                         </div>
@@ -158,7 +158,7 @@
                               <span class="ml-3 inline-flex rounded-md shadow-sm">
                                 <button type="submit"
                                         class="inline-flex justify-center py-2 px-4 border border-transparent text-sm leading-5 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-500 focus:outline-none focus:border-indigo-700 focus:shadow-outline-indigo active:bg-indigo-700 transition duration-150 ease-in-out">
-                                  Continue
+                                  Save
                                 </button>
                               </span>
                             </div>
