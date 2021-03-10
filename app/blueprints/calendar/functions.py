@@ -1,9 +1,10 @@
+from app.extensions import db
 import pytz
 import google
 import datetime
 from pprint import pprint
 import itertools
-from sqlalchemy import and_
+from sqlalchemy import and_, exists
 from app.blueprints.base.functions import print_traceback
 from app.blueprints.calendar.google.calendar import create_calendar_service, refresh_token
 from app.blueprints.calendar.models.account import Account
@@ -67,13 +68,18 @@ def get_calendars_for_accounts(accounts):
 
 def create_calendars_in_db(account_id, user_id, token, refresh):
     calendars = get_calendar_list_from_api(token, refresh)
+    existing_primary = db.session.query(exists().where(and_(Calendar.primary.is_(True), Calendar.user_id == user_id))).scalar()
     for calendar in calendars:
+        # If the calendar exists, don't import it again!
+        if db.session.query(exists().where(and_(Calendar.imported_calendar_id == calendar['id'], Calendar.account_id == account_id))).scalar():
+            continue
+
         c = Calendar()
         c.user_id = user_id
         c.account_id = account_id
         c.imported_calendar_id = calendar['id']
         c.name = calendar['name']
-        c.primary = calendar['primary']
+        c.primary = False if existing_primary else calendar['primary']
 
         c.save()
 
@@ -127,24 +133,29 @@ def get_calendar_ids_for_accounts(accounts):
     return calendar_ids
 
 
-def update_calendar(calendar_id, p):
+def update_primary_calendar(primary, user_id):
     try:
-        c = Calendar.query.filter(Calendar.calendar_id == calendar_id).scalar()
-        if c is None:
+        pprint(primary)
+        calendars = Calendar.query.filter(Calendar.user_id == user_id).all()
+        if calendars is None:
             return
 
-        a = Account.query.filter(Account.account_id == c.account_id).scalar()
-        if a is None:
-            return
-
-        primary = True if p == 'true' else False
-        c.primary = primary
-        c.save()
-
-        other = Calendar.query.filter(and_(Calendar.account_id == a.account_id, Calendar.calendar_id != calendar_id)).all()
-        for calendar in other:
-            calendar.primary = False
+        for calendar in calendars:
+            calendar.primary = False if not (str(calendar.calendar_id) == primary['id']) else True
             calendar.save()
+        #
+        # a = Account.query.filter(Account.account_id == c.account_id).scalar()
+        # if a is None:
+        #     return
+        #
+        # primary = True if p == 'true' else False
+        # c.primary = primary
+        # c.save()
+        #
+        # other = Calendar.query.filter(and_(Calendar.account_id == a.account_id, Calendar.calendar_id != calendar_id)).all()
+        # for calendar in other:
+        #     calendar.primary = False
+        #     calendar.save()
     except Exception:
         return
 

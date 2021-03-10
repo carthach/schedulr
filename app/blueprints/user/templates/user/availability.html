@@ -121,14 +121,8 @@
                             <div>
                                 <h1 class="mb-5 text-xl font-w700 text-gray-900">1. Select a primary calendar</h1>
                                 <!-- This example requires Tailwind CSS v2.0+ -->
-                                <a href="{{ url_for('user.add_calendar') }}" class="col-span-1">
-                                    <div class=" mb-5 w-full flex items-center justify-between p-6 space-x-6 bg-white rounded-lg shadow divide-y divide-gray-200">
-                                        <div class="flex-1 truncate">
-                                            <div class="flex items-center space-x-3">
-                                                <h3 class="text-indigo-600 text-sm font-medium truncate"><i class="fa fa-plus mr-2"></i><u>Connect a new account</u></h3>
-                                            </div>
-                                        </div>
-                                    </div>
+                                <a href="{{ url_for('user.add_calendar') }}">
+                                    <h3 class="text-indigo-600 text-sm font-medium truncate mb-3"><i class="fa fa-plus mr-2"></i><u>Connect a new account</u></h3>
                                 </a>
 
                                 <!-- This example requires Tailwind CSS v2.0+ -->
@@ -334,14 +328,15 @@
         let checkboxes = document.getElementsByName('calendar-checkbox');
         let checked = [];
 
-        // Set the selected calendar's active status
-        if (el !== null)
+        // Set the selected calendar's primary status
+        if (el !== null && el.checked)
             // Cancel the action if trying to uncheck the only selected calendar
             if ($("input:checkbox[name='calendar-checkbox']:checked").length === 0){
                 el.checked = true;
                 return false;
             }
 
+            // Set the primary calendar on Success
             SetPrimaryCalendar(el, checkboxes);
 
         // Update the instance
@@ -379,7 +374,7 @@
 
     function SetPrimaryCalendar(el, checkboxes){
         if (el !== null){
-            let primary = el.checked;
+            let primary = {'id': el.dataset.calendar};
 
             // Unset the other checkboxes
             for (let i = 0; i < checkboxes.length; i++){
@@ -392,7 +387,7 @@
             $.ajax({
                 url: "{{ url_for('user.update_primary_calendar') }}",
                 type: 'POST',
-                data: {'calendar_id': el.dataset.calendar, 'primary': primary},
+                data: {'primary': JSON.stringify(primary)},
                 success: function (response) {
                 },
                 error: function (xhr) {

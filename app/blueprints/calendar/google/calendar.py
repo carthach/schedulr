@@ -68,6 +68,8 @@ def save_google_credentials(r=None):
                 # Create the calendars in the db for this account
                 from app.blueprints.calendar.functions import create_calendars_in_db
                 create_calendars_in_db(account.account_id, current_user.id, credentials.token, credentials.refresh_token)
+
+                return False
             else:
                 account = Account()
                 account.user_id = current_user.id
@@ -81,14 +83,14 @@ def save_google_credentials(r=None):
                 from app.blueprints.calendar.functions import create_calendars_in_db
                 create_calendars_in_db(account.account_id, current_user.id, credentials.token, credentials.refresh_token)
 
-            return True
+                return True
         else:
             # Otherwise the account is already connected
-            return 1
+            return False
 
     except Exception as e:
         print_traceback(e)
-        return False
+        return 1
 
     # flask.session['credentials'] = {
     #     'token': credentials.token,

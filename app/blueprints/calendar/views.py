@@ -12,7 +12,7 @@ def google_auth():
 
     if result:
         flash("Successfully added your account.", 'success')
-    elif result == 1:
+    elif not result:
         flash("This account has already been connected.", 'warning')
     else:
         flash("There was a problem adding your account. Please try again.", 'danger')

@@ -34,7 +34,7 @@ from app.blueprints.calendar.functions import (
     get_busy,
     get_calendar_ids_for_accounts,
     get_calendars_for_accounts,
-    update_calendar
+    update_primary_calendar
 )
 
 from app.blueprints.base.functions import (
@@ -371,11 +371,12 @@ def update_availability():
 @login_required
 @cross_origin()
 def update_primary_calendar():
-    if request.method == 'POST':
-        calendar_id = request.form['calendar_id']
-        primary = request.form['primary']
+    if request.method == 'POST' and 'primary' in request.form:
+        primary = json.loads(request.form.get('primary'))
 
-        update_calendar(calendar_id, primary)
+        from app.blueprints.calendar.functions import update_primary_calendar
+        update_primary_calendar(primary, current_user.id)
+
         return jsonify({'success': True})
     return jsonify({'error': 'Error'})
 
