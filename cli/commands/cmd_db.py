@@ -58,14 +58,23 @@ def seed_users():
     }
 
     owner = {
-        'role': 'owner',
+        'role': 'member',
         'email': app.config['SEED_OWNER_EMAIL'],
         'username': app.config['SEED_OWNER_USERNAME'],
         'password': app.config['SEED_ADMIN_PASSWORD'],
         'name': 'Ricky Charpentier'
     }
 
+    member = {
+        'role': 'member',
+        'email': app.config['SEED_MEMBER_EMAIL'],
+        'username': app.config['SEED_MEMBER_USERNAME'],
+        'password': app.config['SEED_ADMIN_PASSWORD'],
+        'name': 'Schedulr'
+    }
+
     User(**owner).save()
+    User(**member).save()
 
     return User(**admin).save()
 
@@ -99,7 +108,7 @@ def seed_events():
         'user_id': u.id,
         'title': 'A short meeting (15 minutes)',
         'description': 'This is a short, quick chat that is only supposed to take 15 minutes. Will it?',
-        'duration_minutes': 60,
+        'duration_minutes': 15,
         'active': False
     }
 
@@ -114,11 +123,11 @@ def seed_events():
 
 @click.command()
 def seed_calendars():
-    u = User.query.filter(User.email == app.config['SEED_OWNER_EMAIL']).scalar()
+    u = User.query.filter(User.email == app.config['SEED_MEMBER_EMAIL']).scalar()
 
     account = {
         'user_id': u.id,
-        'email': 'ricky@getschedulr.com'
+        'email': u.email
     }
 
     a = Account(**account)

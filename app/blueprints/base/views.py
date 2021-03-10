@@ -17,5 +17,5 @@ def test():
         return redirect(url_for('user.calendar'))
     except Exception as e:
         print_traceback(e)
-        flash("Test was unsuccessful.", 'error')
+        flash("Test was unsuccessful.", 'danger')
         return redirect(url_for('user.calendar'))

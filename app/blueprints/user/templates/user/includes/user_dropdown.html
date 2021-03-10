@@ -58,13 +58,13 @@
     -->
     <div id="user-dropdown-menu"
          class="origin-top-right absolute right-0 mt-2 w-100 rounded-md shadow-lg transform opacity-0 scale-95"
-         style="display:none; z-index:999;width:250px;">
-        <div class="py-1 rounded-md bg-white shadow-xs text-center" role="menu" aria-orientation="vertical"
+         style="display:none; z-index:999;min-width:150px;">
+        <div class="py-1 rounded-md bg-white shadow-xs" role="menu" aria-orientation="vertical"
              aria-labelledby="user-menu">
             <div class="px-4 py-3">
                 <p class="text-sm leading-5 font-medium text-gray-900 truncate">
                     {% if current_user.is_authenticated and current_user.name %}
-                        {{ current_user.name|title }}{% if current_user.role == 'owner' %} (Owner){% endif %}<br/>
+                        {{ current_user.name|title }}{% if current_user.username %} ({{ current_user.username }}){% endif %}<br/>
                     {% endif %}
                     {{ current_user.email }}
                 </p>

@@ -21,6 +21,7 @@ import random
 import requests
 from pprint import pprint
 from operator import attrgetter
+import oauthlib
 from flask_cors import cross_origin
 from flask_paginate import Pagination, get_page_args
 from lib.safe_next_url import safe_next_url
@@ -28,12 +29,16 @@ from app.blueprints.user.decorators import anonymous_required
 
 # Functions
 from app.blueprints.calendar.functions import (
-    create_event,
+    create_event_on_calendar,
     get_calendar_list_from_api,
     get_busy,
     get_calendar_ids_for_accounts,
     get_calendars_for_accounts,
-    update_calendar
+    update_primary_calendar
+)
+
+from app.blueprints.base.functions import (
+    update_username
 )
 
 # Models
@@ -56,7 +61,6 @@ from sqlalchemy import or_, and_, exists, inspect, func
 user = Blueprint('user', __name__, template_folder='templates')
 use_username = False
 
-
 """
 User
 """
@@ -67,6 +71,7 @@ User
 @anonymous_required()
 @csrf.exempt
 def login():
+    production = current_app.config.get('PRODUCTION')
     form = LoginForm(next=request.args.get('next'))
 
     if form.validate_on_submit():
@@ -92,9 +97,9 @@ def login():
                 if current_user.role == 'admin':
                     return redirect(url_for('admin.dashboard'))
             else:
-                flash('This account has been disabled.', 'error')
+                flash('This account has been disabled.', 'danger')
         else:
-            flash('Your username/email or password is incorrect.', 'error')
+            flash('Your username/email or password is incorrect.', 'danger')
 
     else:
         if len(form.errors) > 0:
@@ -119,7 +124,7 @@ def signup():
         if form.validate_on_submit():
             if db.session.query(exists().where(User.email == request.form.get('email'))).scalar():
                 flash(Markup("There is already an account using this email. Please use another or <a href='" + url_for(
-                    'user.login') + "'><span class='text-indigo-700'><u>login</span></u></a>."), category='error')
+                    'user.login') + "'><span class='text-indigo-700'><u>login</span></u></a>."), category='danger')
                 return redirect(url_for('user.signup'))
 
             u = User()
@@ -140,7 +145,7 @@ def signup():
 
                 # Log the user in
                 flash("You've successfully signed up!", 'success')
-                return redirect(url_for('user.events'))
+                return redirect(url_for('user.setup', new=True))
     except Exception as e:
         print_traceback(e)
 
@@ -179,7 +184,7 @@ def password_reset():
 
         if u is None:
             flash('Your reset token has expired or was tampered with.',
-                  'error')
+                  'danger')
             return redirect(url_for('user.begin_password_reset'))
 
         form.populate_obj(u)
@@ -215,6 +220,75 @@ def update_credentials():
         return redirect(url_for('user.settings'))
 
     return render_template('user/update_credentials.html', form=form)
+
+
+"""
+Settings and Setup
+"""
+
+
+@user.route('/settings', methods=['GET', 'POST'])
+@login_required
+@csrf.exempt
+def settings():
+    accounts = Account.query.filter(Account.user_id == current_user.id).all()
+    return render_template('user/settings.html', current_user=current_user, accounts=accounts)
+
+
+@user.route('/setup', methods=['GET', 'POST'])
+@login_required
+@csrf.exempt
+def setup():
+    form = UpdateCredentials(current_user, uid=current_user.id)
+    connected_calendars = list()
+    if not current_user.is_authenticated:
+        return redirect(url_for('user.login'))
+
+    if request.args.get('code'):
+        try:
+            from app.blueprints.calendar.google.calendar import save_google_credentials
+            result = save_google_credentials('setup')
+
+            if result:
+                account = Account.query.filter(Account.user_id == current_user.id).first()
+
+                if account is not None and account.token and account.refresh_token:
+                    connected_calendars = get_calendar_list_from_api(account.token, account.refresh_token)
+
+                flash("Successfully added your account.", 'success')
+            elif result == 1:
+                flash("This account has already been connected.", 'warning')
+            else:
+                flash("There was a problem adding your account. Please try again.", 'danger')
+            return render_template('user/setup.html', current_user=current_user, calendars=connected_calendars, form=form)
+        except oauthlib.oauth2.rfc6749.errors.InvalidGrantError:
+            return redirect(url_for('user.setup'))
+    else:
+        account = Account.query.filter(Account.user_id == current_user.id).first()
+
+        if account is not None and account.token and account.refresh_token:
+            connected_calendars = get_calendar_list_from_api(account.token, account.refresh_token)
+
+    return render_template('user/setup.html', current_user=current_user, calendars=connected_calendars, form=form)
+
+
+@user.route('/finish_setup', methods=['GET', 'POST'])
+@login_required
+@csrf.exempt
+def finish_setup():
+    if request.method == 'POST':
+        if 'username' in request.form:
+            username = request.form['username']
+
+            if db.session.query(exists().where(and_(User.username == username, User.id != current_user.id))).scalar():
+                flash("This username is already in use. Please try a different one.", 'danger')
+                return redirect(url_for('user.setup'))
+            else:
+                if update_username(current_user.id, username):
+                    flash("Your account has been successfully set up.", 'success')
+                else:
+                    flash("There was an error setting up your username. You can change it in settings.", 'danger')
+    return redirect(url_for('user.availability'))
 
 
 """
@@ -259,11 +333,12 @@ def calendar(event_id=None, username=None, tag=None):
 
             return render_template('user/calendar.html', current_user=current_user, event_type=event_type,
                                    busy=busy, loadServerSide=load_server_side)
-
+        else:
+            flash('That calendar was not found. Please try again.', 'danger')
     return redirect(url_for('user.events'))
 
 
-@user.route('/availability/', methods=['GET', 'POST'])
+@user.route('/availability', methods=['GET', 'POST'])
 @csrf.exempt
 @login_required
 @cross_origin()
@@ -271,13 +346,13 @@ def availability():
     a = Account.query.filter(Account.user_id == current_user.id).all()
     accounts = get_calendars_for_accounts(a)
     if any(d['calendars'] == -1 for d in accounts):
-        flash('There was a problem getting calendars. Please try again.', 'error')
+        flash('There was a problem getting calendars. Please try again.', 'danger')
         return redirect(url_for('user.availability'))
 
     return render_template('user/availability.html', current_user=current_user, accounts=accounts)
 
 
-@user.route('/update_availability/', methods=['POST'])
+@user.route('/update_availability', methods=['POST'])
 @csrf.exempt
 @login_required
 @cross_origin()
@@ -292,21 +367,22 @@ def update_availability():
     return jsonify({'error': 'Error'})
 
 
-@user.route('/update_calendar_status/', methods=['POST'])
+@user.route('/update_primary_calendar', methods=['POST'])
 @csrf.exempt
 @login_required
 @cross_origin()
-def update_calendar_status():
-    if request.method == 'POST':
-        calendar_id = request.form['calendar_id']
-        calendar_status = request.form['calendar_status']
+def update_primary_calendar():
+    if request.method == 'POST' and 'primary' in request.form:
+        primary = json.loads(request.form.get('primary'))
 
-        update_calendar(calendar_id, calendar_status)
+        from app.blueprints.calendar.functions import update_primary_calendar
+        update_primary_calendar(primary, current_user.id)
+
         return jsonify({'success': True})
     return jsonify({'error': 'Error'})
 
 
-@user.route('/get_busy_times/', methods=['POST'])
+@user.route('/get_busy_times', methods=['POST'])
 @csrf.exempt
 @login_required
 @cross_origin()
@@ -326,7 +402,7 @@ def get_busy_times():
     return jsonify({'error': 'Error'})
 
 
-@user.route('/get_calendars/', methods=['GET', 'POST'])
+@user.route('/get_calendars', methods=['GET', 'POST'])
 @csrf.exempt
 @cross_origin()
 def get_calendars():
@@ -337,32 +413,48 @@ def get_calendars():
     return redirect(url_for('user.availability'))
 
 
-@user.route('/add_calendar/', methods=['GET', 'POST'])
+@user.route('/add_calendar', methods=['GET', 'POST'])
+@user.route('/add_calendar/<r>', methods=['GET', 'POST'])
 @csrf.exempt
 @login_required
 @cross_origin()
-def add_calendar():
-    from app.blueprints.calendar.google.calendar import authorize
+def add_calendar(r=None):
+    from app.blueprints.calendar.google.calendar import authorize_google_account
 
-    auth_url = authorize()
+    auth_url = authorize_google_account(r)
     return redirect(auth_url)
+
 
 """
 Events
 """
 
 
-@user.route('/events/', methods=['GET', 'POST'])
+@user.route('/events', methods=['GET', 'POST'])
 @user.route('/events/<event_type_id>', methods=['GET', 'POST'])
+@user.route('/events/<username>', methods=['GET', 'POST'])
 @csrf.exempt
 @cross_origin()
-def events(event_type_id=None):
+def events(event_type_id=None, username=None):
     if event_type_id is not None:
         event_type = EventType.query.filter(EventType.event_type_id == event_type_id).scalar()
+        if event_type is None or not (event_type.user_id == current_user.id):
+            return redirect(url_for('user.events'))
+
         return render_template('user/event_type.html', current_user=current_user, event_type=event_type)
     else:
+        if username:
+            u = User.query.filter(User.username == username).scalar()
+            if u is None:
+                return redirect(url_for('user.events'))
+
+            event_types = EventType.query.filter(EventType.user_id == u.id).all()
+            return render_template('user/public_events.html', current_user=current_user, event_types=event_types,
+                                   username=username)
+
         event_types = EventType.query.filter(EventType.user_id == current_user.id).all()
         event_types.sort(key=lambda x: x.created_on)
+
         return render_template('user/events.html', current_user=current_user, event_types=event_types)
 
 
@@ -373,18 +465,18 @@ def confirm_event():
     if request.method == 'POST':
         if 'name' in request.form and 'email' in request.form and 'duration-minutes' in request.form \
                 and 'datetime' in request.form and 'date' in request.form and 'start-time' in request.form \
-                and 'tz-offset' in request.form and 'event-type-id' in request.form:
+                and 'tz-offset' in request.form and 'tz-name' in request.form and 'event-type-id' in request.form:
 
             # Get the event type from the database
             event_type = EventType.query.filter(EventType.event_type_id == request.form['event-type-id']).scalar()
             if event_type is None:
-                flash("There was an error creating this event. Please try again.", 'error')
+                flash("There was an error creating this event. Please try again.", 'danger')
                 return redirect(url_for('user.events'))
 
             # Get the user that owns this event type
             u = User.query.filter(User.id == event_type.user_id).scalar()
             if u is None:
-                flash("There was an error creating this event. Please try again.", 'error')
+                flash("There was an error creating this event. Please try again.", 'danger')
                 return redirect(url_for('user.events'))
 
             data = {'event_type_id': request.form['event-type-id'],
@@ -394,18 +486,18 @@ def confirm_event():
                     'event_datetime': request.form['datetime'],
                     'start_time': request.form['start-time'],
                     'tz_offset': request.form['tz-offset'],
+                    'tz_name': request.form['tz-name'],
                     'duration_minutes': request.form['duration-minutes'],
                     'zoom': request.form['zoom'],
                     'notes': request.form['notes']
-            }
+                    }
 
-            create_event()
+            if create_event_on_calendar(u, **data):
+                flash("Successfully created your meeting! You'll get an email confirmation soon.", 'success')
+            else:
+                flash("There was an error creating this meeting. Please try again.", 'danger')
 
-            e = Event(u.id, None, **data)
-            e.save()
-
-            flash("Successfully created your meeting! You'll get an email confirmation soon.", 'success')
-    return redirect(url_for('user.events'))
+    return redirect(request.referrer)
 
 
 """
@@ -413,7 +505,7 @@ Event Types
 """
 
 
-@user.route('/create_event_type/', methods=['GET', 'POST'])
+@user.route('/create_event_type', methods=['GET', 'POST'])
 @csrf.exempt
 @cross_origin()
 def create_event_type():
@@ -463,29 +555,15 @@ def save_event_type():
     return redirect(url_for('user.events'))
 
 
-# @user.route('/start', methods=['GET', 'POST'])
-# @user.route('/start/<shop_url>', methods=['GET', 'POST'])
-# @login_required
-# def start(shop_url):
-#     if not current_user.is_authenticated:
-#         return redirect(url_for('user.login'))
-#
-#     shop = Shop.query.filter(Shop.url == shop_url).scalar()
-#     if shop is None:
-#         return redirect(url_for('user.calendar'))
-#
-#     pending = Sync.query.filter(and_(Sync.destination_url == shop_url, Sync.active.is_(False))).all()
-#     plans = Plan.query.all()
-#
-#     return render_template('user/start.html', current_user=current_user, shop_id=shop.shop_id, pending=pending, plans=plans)
-
-
-# Settings -------------------------------------------------------------------
-@user.route('/settings', methods=['GET', 'POST'])
-@login_required
+@user.route('/delete_event_type', methods=['GET', 'POST'])
+@user.route('/delete_event_type/<event_type_id>', methods=['GET', 'POST'])
 @csrf.exempt
-def settings():
-    return render_template('user/settings.html', current_user=current_user)
+@cross_origin()
+def delete_event_type(event_type_id):
+    event_type = EventType.query.filter(EventType.event_type_id == event_type_id).scalar()
+    if event_type is not None:
+        event_type.delete()
+    return redirect(url_for('user.events'))
 
 
 # Actions -------------------------------------------------------------------

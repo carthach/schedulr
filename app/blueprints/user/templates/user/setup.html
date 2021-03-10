@@ -1,4 +1,5 @@
 {% import 'macros/flash.html' as flash with context %}
+{% import 'macros/form.html' as f with context %}
 <!DOCTYPE html>
 <!--[if IE 9]>
 <html class="ie9 no-focus" lang="en"> <![endif]-->
@@ -68,12 +69,12 @@
             <main class="flex-1 relative z-0 overflow-y-auto pb-6 focus:outline-none" tabindex="0">
                 {{ flash.render() }}
                 <div class="max-w-5xl mx-auto px-4 sm:px-6 md:px-8">
-                    <h1 class="mb-5 mt-5" style="font-size: 24px;">Is this a source store or a destination store?</h1>
+                    <h1 class="mb-5 mt-20 text-2xl font-w700 text-gray-800">Just a couple of things to get you set up...</h1>
                     <!--
                       Tailwind UI components require Tailwind CSS v1.8 and the @tailwindcss/ui plugin.
                       Read the documentation to get started: https://tailwindui.com/documentation
                     -->
-                    <form action="{{ url_for('user.calendar') }}" method="GET">
+                    {% call f.form_tag('user.finish_setup') %}
                         <div class="rounded-lg bg-white border border-gray-200 pb-10 pl-7 pr-7">
                             <div class="mt-3 sm:mt-5 sm:pt-5">
                                 <div>
@@ -82,86 +83,78 @@
                                             <div>
                                                 <div class="text-base leading-6 font-medium text-gray-900 sm:text-sm sm:leading-5 sm:text-gray-700"
                                                      id="label-notifications">
-                                                    Store type
+                                                    Sync your calendar
                                                 </div>
                                             </div>
                                             <div class="sm:col-span-2">
                                                 <div class="max-w-lg">
-                                                    <div class="flex items-center">
-                                                        <input id="source_radio" checked name="store_type"
-                                                               value="source" type="radio"
-                                                               class="form-radio h-4 w-4 text-indigo-600 transition duration-150 ease-in-out"
-                                                               style="cursor:pointer" onchange="ShowPendingSyncs(false)">
-                                                        <label for="source_radio" class="ml-3">
-                                                            <span class="block text-sm leading-5 font-medium text-gray-700">Source store</span>
-                                                            <span class="block text-sm leading-5 font-medium text-gray-500">You are the main store that allows other stores to sell its products.</span>
-                                                        </label>
-                                                    </div>
-                                                    <div class="mt-4 flex items-center">
-                                                        <input id="destination_radio" name="store_type" type="radio"
-                                                               value="destination"
-                                                               class="form-radio h-4 w-4 text-indigo-600 transition duration-150 ease-in-out"
-                                                               style="cursor:pointer" onchange="ShowPendingSyncs(true)">
-                                                        <label for="destination_radio" class="ml-3">
-                                                            <span class="block text-sm leading-5 font-medium text-gray-700">Destination store</span>
-                                                            <span class="block text-sm leading-5 font-medium text-gray-500">You are a store that sells another store's products.</span>
-                                                        </label>
-                                                    </div>
+                                                    {% if calendars and calendars|length > 0 %}
+                                                        <span class="block text-sm leading-5 font-medium text-gray-700 mb-1">Choose your primary calendar</span>
+                                                        <span class="block text-sm leading-5 font-medium text-gray-500 mb-5">This will be the calendar we use when checking your availability and scheduling meetings.</span>
+                                                        <div>
+                                                            <select id="location" name="location" class="mt-1 mb-5 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                                                                {% for calendar in calendars %}
+                                                                    <option id="{{ calendar.imported_calendar_id }}">{{ calendar.name }}</option>
+                                                                {% endfor %}
+                                                            </select>
+                                                        </div>
+                                                    {% else %}
+                                                        <span class="block text-sm leading-5 font-medium text-gray-700 mb-5">Import your calendars so that {{ ''|site_name_filter() }} can calculate your available times for meetings.</span>
+                                                        <a href="{{ url_for('user.add_calendar', r='setup') }}" class="mb-4 inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                                            <img class="mr-2 w-5 h-5 bg-gray-300 flex-shrink-0" src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Google_Calendar_icon_%282020%29.svg/1200px-Google_Calendar_icon_%282020%29.svg.png" />Connect a Google account
+                                                        </a>
+                                                    {% endif %}
+                                                    <a href="#" class="mb-4 inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-300 bg-white hover:bg-gray-50 focus:outline-none cursor-none">
+                                                        <img class="mr-2 w-5 h-5 bg-gray-300 flex-shrink-0" src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Microsoft_Office_Outlook_%282018%E2%80%93present%29.svg/1200px-Microsoft_Office_Outlook_%282018%E2%80%93present%29.svg.png" />Connect Microsoft Outlook (coming soon)
+                                                    </a>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </div>
-                            </div>
 
-                            <div id="sync_div" style="display:none">
-                                <div class="mt-6 sm:mt-5">
-                                    <div class="sm:grid sm:grid-cols-3 sm:gap-4 sm:items-start sm:pt-5">
-                                        <label for="source_url"
-                                               class="block text-sm font-medium leading-5 text-gray-700 sm:mt-px sm:pt-2">
-                                            Pending syncs for this store:
-                                        </label>
-                                        <div class="mt-1 sm:mt-0 sm:col-span-2 pt-2">
-                                            {% if pending|length > 0 %}
-                                                {% for sync in pending %}
-                                                    <div class="grid grid-cols-4 mb-3">
-                                                        <div class="col-span-3 mt-2">
-                                                            {% set plan = plans|selectattr('id', 'equalto', sync.plan_id ) | list | first %}
-                                                            <span class="pending_sync block text-sm leading-5 font-medium text-gray-700">{{ sync.source_url }} - Sync up to {{ plan.limit }} products</span>
-                                                        </div>
-                                                        <div class="col-span-1">
-                                                            <span class="ml-3 inline-flex rounded-md shadow-sm">
-                                                                <button type="button"
-                                                                        class="inline-flex justify-center py-2 px-4 border border-transparent text-sm leading-5 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-500 focus:outline-none focus:border-indigo-700 focus:shadow-outline-indigo active:bg-indigo-700 transition duration-150 ease-in-out"
-                                                                        onclick="ActivateSync('{{ sync.sync_id }}', '{{ shop_id }}', true, this);">
-                                                                  Activate
-                                                                </button>
+                                        <div class="mt-10 sm:grid sm:grid-cols-3 sm:gap-4 sm:items-baseline">
+                                            <div>
+                                                <div class="text-base leading-6 font-medium text-gray-900 sm:text-sm sm:leading-5 sm:text-gray-700"
+                                                     id="label-notifications">
+                                                    Username
+                                                </div>
+                                            </div>
+                                            <div class="sm:col-span-2">
+                                                <div class="max-w-lg">
+                                                    {% if not current_user.username %}
+                                                        <span class="block text-sm leading-5 font-medium text-gray-700 mb-1">You haven't chosen a username yet.</span>
+                                                        <span class="block text-sm leading-5 font-medium text-gray-500 mb-5">Please create a username below so that you can have custom calendar links.</span>
+                                                    {% else %}
+                                                        <span class="block text-sm leading-5 font-medium text-gray-700 mb-1">Your chosen username is below.</span>
+                                                        <span class="block text-sm leading-5 font-medium text-gray-500 mb-5">It will be used for your custom calendar links.</span>
+                                                    {% endif %}
+                                                    <div>
+                                                        <div class="mt-1 flex">
+                                                            <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
+                                                                {{ ''|site_url_filter() }}/
                                                             </span>
+                                                            {% call f.form_group(form.username, css_class='sm-margin-bottom', hidden='hidden', half='half', placeholder='MyUsername', autofocus='autofocus') %}
+                                                            {% endcall %}
                                                         </div>
                                                     </div>
-                                                {% endfor %}
-                                            {% else %}
-                                                <span class="mt-2 block text-sm leading-5 font-medium text-gray-500">There are no pending syncs for this store.</span>
-                                            {% endif %}
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-
-                        <input type="hidden" name="shop_id" value="{{ shop_id }}"/>
 
                         <div class="mt-8 border-t border-gray-200 pt-5">
                             <div class="flex justify-end">
                               <span class="ml-3 inline-flex rounded-md shadow-sm">
                                 <button type="submit"
                                         class="inline-flex justify-center py-2 px-4 border border-transparent text-sm leading-5 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-500 focus:outline-none focus:border-indigo-700 focus:shadow-outline-indigo active:bg-indigo-700 transition duration-150 ease-in-out">
-                                  Continue
+                                  Save
                                 </button>
                               </span>
                             </div>
                         </div>
-                    </form>
+                    {% endcall %}
                 </div>
             </main>
 
@@ -192,36 +185,6 @@
             dropdown.style.display = 'none';
         }
     }
-
-    function ShowPendingSyncs(val) {
-        if (val === true) {
-            document.getElementById('sync_div').style.display = '';
-        } else {
-            document.getElementById('sync_div').style.display = 'none';
-        }
-    }
-
-    function ActivateSync(sync_id, shop_id, activate, el){
-        var url = "{{ url_for('user.activate_sync') }}";
-        $.ajax({
-            url: url,
-            type: 'POST',
-            data: {'sync_id': sync_id, 'shop_id': shop_id, 'activate':activate},
-            success: function (response) {
-                if ('success' in response){
-                    el.innerText = "Activated";
-                    el.classList.remove('bg-indigo-600');
-                    el.classList.remove('hover:bg-indigo-500');
-                    el.classList.add('hover:bg-green-500');
-                    el.classList.add('bg-green-600');
-                    el.removeAttribute("onclick");
-                }
-            },
-            error: function (xhr) {
-            }
-        });
-    }
-
 
 </script>
 <script>

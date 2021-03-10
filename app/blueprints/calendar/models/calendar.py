@@ -15,8 +15,9 @@ class Calendar(ResourceMixin, db.Model):
     calendar_id = db.Column(db.BigInteger, unique=True, index=True, nullable=False)
     imported_calendar_id = db.Column(db.String(255), unique=False, index=True, nullable=True)
     name = db.Column(db.String(255), index=True, server_default='')
-    active = db.Column('is_active', db.Boolean(), nullable=False, server_default='0')
+    active = db.Column('is_active', db.Boolean(), nullable=False, server_default='1')
     primary = db.Column('primary', db.Boolean(), nullable=False, server_default='0')
+    imported_primary = db.Column('imported_primary', db.Boolean(), nullable=False, server_default='0')
 
     # Relationships.
     user_id = db.Column(db.Integer, db.ForeignKey('users.id', onupdate='CASCADE', ondelete='CASCADE'),

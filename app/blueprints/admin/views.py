@@ -83,7 +83,7 @@ def users_edit(id):
         if User.is_last_admin(user,
                               request.form.get('role'),
                               request.form.get('active')):
-            flash('You are the last admin, you cannot do that.', 'error')
+            flash('You are the last admin, you cannot do that.', 'danger')
             return redirect(url_for('admin.users'))
 
         form.populate_obj(user)
@@ -118,7 +118,7 @@ def users_bulk_delete():
         flash('{0} user(s) were scheduled to be deleted.'.format(len(ids)),
               'success')
     else:
-        flash('No users were deleted, something went wrong.', 'error')
+        flash('No users were deleted, something went wrong.', 'danger')
 
     return redirect(url_for('admin.users'))
 
@@ -137,7 +137,7 @@ def users_cancel_subscription():
                       .format(user.name), 'success')
         else:
             flash('No subscription was canceled, something went wrong.',
-                  'error')
+                  'danger')
 
     return redirect(url_for('admin.users'))
 
@@ -206,6 +206,6 @@ def users_cancel_subscription():
 #         flash('{0} coupons(s) were scheduled to be deleted.'.format(len(ids)),
 #               'success')
 #     else:
-#         flash('No coupons were deleted, something went wrong.', 'error')
+#         flash('No coupons were deleted, something went wrong.', 'danger')
 #
 #     return shopify_redirect(url_for('admin.coupons'))

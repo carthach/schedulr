@@ -119,21 +119,13 @@
                     <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                         <div class="py-1 align-middle inline-block min-w-full sm:px-6 lg:px-8">
                             <div>
-                                <h1 class="mb-5 text-xl font-w700 text-gray-900">1. Choose calendars</h1>
+                                <h1 class="mb-5 text-xl font-w700 text-gray-900">1. Select a primary calendar</h1>
                                 <!-- This example requires Tailwind CSS v2.0+ -->
-                                <a href="{{ url_for('user.add_calendar') }}" class="col-span-1">
-                                    <div class=" mb-5 w-full flex items-center justify-between p-6 space-x-6 bg-white rounded-lg shadow divide-y divide-gray-200">
-                                        <div class="flex-1 truncate">
-                                            <div class="flex items-center space-x-3">
-                                                <h3 class="text-indigo-600 text-sm font-medium truncate"><i class="fa fa-plus mr-2"></i><u>Connect a new account</u></h3>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </a>
+                                <a href="{{ url_for('user.add_calendar') }}" class="text-indigo-600 text-sm font-medium truncate mb-3"><i class="fa fa-plus mr-2"></i><u>Connect a new account</u></a>
 
                                 <!-- This example requires Tailwind CSS v2.0+ -->
-                                <nav class="relative h-full overflow-y-auto border-l border-r border-b" aria-label="Directory" style="max-height:554px;">
-                                    {% if accounts %}
+                                {% if accounts and accounts|length > 0 %}
+                                    <nav class="relative h-full overflow-y-auto border-l border-r border-b mt-5" aria-label="Directory" style="max-height:600px;">
                                         {% for account in accounts %}
                                               <div class="z-10 sticky top-0 border-t border-b border-gray-200 bg-gray-50 px-2 py-4 text-md font-medium text-gray-500">
                                                     <div class="flex items-center space-x-3">
@@ -146,7 +138,7 @@
                                                       <div id="" class="relative px-6 py-2 flex items-center space-x-3 hover:bg-gray-50 {#focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500#}">
                                                         <div class="flex-shrink-0">
                                                             <div class="flex items-center h-5">
-                                                                <input id="{{ calendar.id }}" {% if calendar.active %}checked{% endif %} name="calendar-checkbox" data-calendar="{{ calendar.calendar_id }}" data-account="{{ account.id }}" style="z-index:999" type="checkbox"
+                                                                <input id="{{ calendar.id }}" {% if calendar.primary %}checked{% endif %} name="calendar-checkbox" data-calendar="{{ calendar.calendar_id }}" data-account="{{ account.id }}" style="z-index:999" type="checkbox"
                                                                        class="cursor-pointer focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
                                                                 onchange="UpdateAvailability(null, this);">
                                                             </div>
@@ -169,8 +161,8 @@
                                               {% endfor %}
                                               </ul>
                                         {% endfor %}
-                                    {% endif %}
-                                </nav>
+                                    </nav>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
@@ -287,18 +279,21 @@
     }
 
     function FormatDate(date){
-        let dt = moment(date).format('YYYY-MM-DD hh:mm:ss Z')
+        let dt = moment(date).format('YYYY-MM-DDTHH:mm:ssZ')
         let d = moment(date).format('MMMM Do YYYY');
         let h = String((date.getHours())).length === 1 ? '0' + date.getHours() : date.getHours();
         let m = String((date.getMinutes())).length === 1 ? '0' + date.getMinutes() : date.getMinutes();
         let t = h + ':' + m;
-        let tz = moment(date).format('Z');
+        let timezone = moment(date).format('Z');
+        let tz_full_name = moment.tz.guess();
+        let tz_abbr_string = moment.tz(moment.tz.guess()).zoneAbbr();
 
         document.getElementById('datetime').value = dt;
         document.getElementById('date').value = d;
         document.getElementById('start-time').value = t;
-        document.getElementById('tz-offset').value = tz;
-        return moment(date).format('dddd, MMMM Do, YYYY @ h:mm a');
+        document.getElementById('tz-offset').value = timezone;
+        document.getElementById('tz-name').value = tz_full_name;
+        return moment(date).format('dddd, MMMM Do, YYYY @ h:mm a z') + tz_abbr_string ;
     }
 
     <!-- FlatPickr -->
@@ -330,11 +325,20 @@
     <!-- Update availability -->
     function UpdateAvailability(selectedDate=null, el=null){
 
-        // Set the selected calendar's active status
-        if (el !== null)
-            SetActiveCalendar(el);
-
+        // Get the checkboxes
         let checkboxes = document.getElementsByName('calendar-checkbox');
+        let checked = [];
+
+        // Set the selected calendar's primary status
+        if (el !== null && el.checked)
+            // Cancel the action if trying to uncheck the only selected calendar
+            if ($("input:checkbox[name='calendar-checkbox']:checked").length === 0){
+                el.checked = true;
+                return false;
+            }
+
+            // Set the primary calendar on Success
+            SetPrimaryCalendar(el, checkboxes);
 
         // Update the instance
         if (selectedDate !== null){
@@ -344,7 +348,6 @@
         let date = instance.getStartDate();
         let tz_offset = instance.getTZOffset();
 
-        let checked = [];
         for (let i=0; i < checkboxes.length; i++) {
              if (checkboxes[i].checked) {
                  checked.push({'id': checkboxes[i].id, 'account': checkboxes[i].dataset.account });
@@ -370,13 +373,22 @@
         //Reload();
     }
 
-    function SetActiveCalendar(el){
+    function SetPrimaryCalendar(el, checkboxes){
         if (el !== null){
-            let active = el.checked;
+            let primary = {'id': el.dataset.calendar};
+
+            // Unset the other checkboxes
+            for (let i = 0; i < checkboxes.length; i++){
+                if (checkboxes[i] !== el){
+                    checkboxes[i].checked = false;
+                }
+            }
+
+            // Update the primary calendar in the DB
             $.ajax({
-                url: "{{ url_for('user.update_calendar_status') }}",
+                url: "{{ url_for('user.update_primary_calendar') }}",
                 type: 'POST',
-                data: {'calendar_id': el.dataset.calendar, 'calendar_status': active},
+                data: {'primary': JSON.stringify(primary)},
                 success: function (response) {
                 },
                 error: function (xhr) {

@@ -15,11 +15,11 @@ SCOPES = ['https://www.googleapis.com/auth/calendar', 'https://www.googleapis.co
           'https://www.googleapis.com/auth/userinfo.email']
 
 
-def authorize():
+def authorize_google_account(r=None):
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
         'credentials.json', scopes=SCOPES)
 
-    flow.redirect_uri = current_app.config.get('GOOGLE_REDIRECT')
+    flow.redirect_uri = current_app.config.get('GOOGLE_REDIRECT') if r is None else current_app.config.get('SERVER_URL') + r
 
     authorization_url, state = flow.authorization_url(
         # Enable offline access so that you can refresh an access token without
@@ -32,11 +32,11 @@ def authorize():
     return authorization_url
 
 
-def get_credentials():
+def save_google_credentials(r=None):
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
         'credentials.json',
         scopes=SCOPES)
-    flow.redirect_uri = current_app.config.get('GOOGLE_REDIRECT')
+    flow.redirect_uri = current_app.config.get('GOOGLE_REDIRECT') if r is None else current_app.config.get('SERVER_URL') + r
 
     authorization_response = request.url
     flow.fetch_token(authorization_response=authorization_response)
@@ -68,6 +68,8 @@ def get_credentials():
                 # Create the calendars in the db for this account
                 from app.blueprints.calendar.functions import create_calendars_in_db
                 create_calendars_in_db(account.account_id, current_user.id, credentials.token, credentials.refresh_token)
+
+                return False
             else:
                 account = Account()
                 account.user_id = current_user.id
@@ -81,14 +83,14 @@ def get_credentials():
                 from app.blueprints.calendar.functions import create_calendars_in_db
                 create_calendars_in_db(account.account_id, current_user.id, credentials.token, credentials.refresh_token)
 
-            return True
+                return True
         else:
             # Otherwise the account is already connected
-            return 1
+            return False
 
     except Exception as e:
         print_traceback(e)
-        return False
+        return 1
 
     # flask.session['credentials'] = {
     #     'token': credentials.token,
