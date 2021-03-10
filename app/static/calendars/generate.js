@@ -12,7 +12,9 @@ function generateAvailability(startTime, endTime, date, interval, busy=null) {
         startTimeMoment.add(i === 0 ? 0 : interval, period);
 
         // If we've reached the end time, stop adding times
-        if (startTimeMoment.isSame(endTimeMoment) || startTimeMoment.isAfter(endTimeMoment))
+        // Commenting out isSame includes the end time (i.e. 6:00pm) in available times,
+        // otherwise uncommenting excludes it
+        if (/*startTimeMoment.isSame(endTimeMoment) || */startTimeMoment.isAfter(endTimeMoment))
             break;
 
         if (busy !== null && busy.length > 0){

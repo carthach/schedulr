@@ -127,7 +127,7 @@
                                     Event type calendar link
                                 </label>
                                 <div class="mt-1 sm:mt-0 sm:col-span-2">
-                                    <p class="mt-2 text-sm text-gray-500">https://{{ ''|site_url_filter() }}/{{ current_user.username }}/<span id="link-tag">{% if event_type.tag %}{{ event_type.tag }}{% else %}{{ event_type.event_type_id }}{% endif %}</span></p>
+                                    <p class="mt-2 text-sm text-gray-500">https://{{ ''|site_url_filter() }}/calendar/{{ current_user.username }}/<span id="link-tag">{% if event_type.tag %}{{ event_type.tag }}{% else %}{{ event_type.event_type_id }}{% endif %}</span></p>
                                 </div>
                             </div>
                           </div>

@@ -29,7 +29,7 @@ from app.blueprints.user.decorators import anonymous_required
 
 # Functions
 from app.blueprints.calendar.functions import (
-    create_event,
+    create_event_on_calendar,
     get_calendar_list_from_api,
     get_busy,
     get_calendar_ids_for_accounts,
@@ -333,7 +333,8 @@ def calendar(event_id=None, username=None, tag=None):
 
             return render_template('user/calendar.html', current_user=current_user, event_type=event_type,
                                    busy=busy, loadServerSide=load_server_side)
-
+        else:
+            flash('That calendar was not found. Please try again.', 'danger')
     return redirect(url_for('user.events'))
 
 
@@ -431,15 +432,29 @@ Events
 
 @user.route('/events', methods=['GET', 'POST'])
 @user.route('/events/<event_type_id>', methods=['GET', 'POST'])
+@user.route('/events/<username>', methods=['GET', 'POST'])
 @csrf.exempt
 @cross_origin()
-def events(event_type_id=None):
+def events(event_type_id=None, username=None):
     if event_type_id is not None:
         event_type = EventType.query.filter(EventType.event_type_id == event_type_id).scalar()
+        if event_type is None or not (event_type.user_id == current_user.id):
+            return redirect(url_for('user.events'))
+
         return render_template('user/event_type.html', current_user=current_user, event_type=event_type)
     else:
+        if username:
+            u = User.query.filter(User.username == username).scalar()
+            if u is None:
+                return redirect(url_for('user.events'))
+
+            event_types = EventType.query.filter(EventType.user_id == u.id).all()
+            return render_template('user/public_events.html', current_user=current_user, event_types=event_types,
+                                   username=username)
+
         event_types = EventType.query.filter(EventType.user_id == current_user.id).all()
         event_types.sort(key=lambda x: x.created_on)
+
         return render_template('user/events.html', current_user=current_user, event_types=event_types)
 
 
@@ -450,7 +465,7 @@ def confirm_event():
     if request.method == 'POST':
         if 'name' in request.form and 'email' in request.form and 'duration-minutes' in request.form \
                 and 'datetime' in request.form and 'date' in request.form and 'start-time' in request.form \
-                and 'tz-offset' in request.form and 'event-type-id' in request.form:
+                and 'tz-offset' in request.form and 'tz-name' in request.form and 'event-type-id' in request.form:
 
             # Get the event type from the database
             event_type = EventType.query.filter(EventType.event_type_id == request.form['event-type-id']).scalar()
@@ -471,18 +486,18 @@ def confirm_event():
                     'event_datetime': request.form['datetime'],
                     'start_time': request.form['start-time'],
                     'tz_offset': request.form['tz-offset'],
+                    'tz_name': request.form['tz-name'],
                     'duration_minutes': request.form['duration-minutes'],
                     'zoom': request.form['zoom'],
                     'notes': request.form['notes']
-            }
+                    }
 
-            create_event()
+            if create_event_on_calendar(u, **data):
+                flash("Successfully created your meeting! You'll get an email confirmation soon.", 'success')
+            else:
+                flash("There was an error creating this meeting. Please try again.", 'danger')
 
-            e = Event(u.id, None, **data)
-            e.save()
-
-            flash("Successfully created your meeting! You'll get an email confirmation soon.", 'success')
-    return redirect(url_for('user.events'))
+    return redirect(request.referrer)
 
 
 """
@@ -537,6 +552,17 @@ def save_event_type():
                     e.duration_minutes = duration
                     e.tag = tag
                     e.save()
+    return redirect(url_for('user.events'))
+
+
+@user.route('/delete_event_type', methods=['GET', 'POST'])
+@user.route('/delete_event_type/<event_type_id>', methods=['GET', 'POST'])
+@csrf.exempt
+@cross_origin()
+def delete_event_type(event_type_id):
+    event_type = EventType.query.filter(EventType.event_type_id == event_type_id).scalar()
+    if event_type is not None:
+        event_type.delete()
     return redirect(url_for('user.events'))
 
 

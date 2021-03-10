@@ -2,8 +2,10 @@ from app.extensions import db
 import pytz
 import google
 import datetime
+import dateutil.parser
 from pprint import pprint
 import itertools
+from flask import current_app
 from sqlalchemy import and_, exists
 from app.blueprints.base.functions import print_traceback
 from app.blueprints.calendar.google.calendar import create_calendar_service, refresh_token
@@ -80,6 +82,7 @@ def create_calendars_in_db(account_id, user_id, token, refresh):
         c.imported_calendar_id = calendar['id']
         c.name = calendar['name']
         c.primary = False if existing_primary else calendar['primary']
+        c.imported_primary = calendar['primary']
 
         c.save()
 
@@ -135,7 +138,6 @@ def get_calendar_ids_for_accounts(accounts):
 
 def update_primary_calendar(primary, user_id):
     try:
-        pprint(primary)
         calendars = Calendar.query.filter(Calendar.user_id == user_id).all()
         if calendars is None:
             return
@@ -143,19 +145,6 @@ def update_primary_calendar(primary, user_id):
         for calendar in calendars:
             calendar.primary = False if not (str(calendar.calendar_id) == primary['id']) else True
             calendar.save()
-        #
-        # a = Account.query.filter(Account.account_id == c.account_id).scalar()
-        # if a is None:
-        #     return
-        #
-        # primary = True if p == 'true' else False
-        # c.primary = primary
-        # c.save()
-        #
-        # other = Calendar.query.filter(and_(Calendar.account_id == a.account_id, Calendar.calendar_id != calendar_id)).all()
-        # for calendar in other:
-        #     calendar.primary = False
-        #     calendar.save()
     except Exception:
         return
 
@@ -165,5 +154,54 @@ def get_events(calendar):
     return events
 
 
-def create_event(calendar, **data):
-    return
+def create_event_on_calendar(user, **data):
+    try:
+        calendar = Calendar.query.filter(and_(Calendar.user_id == user.id, Calendar.primary.is_(True))).scalar()
+        if calendar is None:
+            calendar = Calendar.query.filter(and_(Calendar.user_id == user.id, Calendar.imported_primary.is_(True))).scalar()
+
+        account = Account.query.filter(Account.account_id == calendar.account_id).scalar()
+        if account is None:
+            return False
+
+        # Format the event description
+        if 'zoom' in data and data['zoom']:
+            description = 'Zoom link:\n' + data['zoom'] + '\n\n' + data['notes']
+        else:
+            description = data['notes']
+
+        # Get the end time
+        end_time = get_end_time(data['event_datetime'], data['duration_minutes'], data['tz_offset'])
+
+        e = {'summary': current_app.config.get('SITE_NAME') + ' meeting with ' + data['requester_name'],
+             'description': description,
+             'start': {'dateTime': data['event_datetime'], 'timeZone': data['tz_name']},
+             'end': {'dateTime': end_time, 'timeZone': data['tz_name']},
+             'attendees': [{'email': data['requester_email']},
+                           {'email': user.email}]
+             }
+
+        pprint(e)
+
+        service = create_calendar_service(account.token, account.refresh_token)
+        event = service.events().insert(calendarId=calendar.imported_calendar_id, body=e).execute()
+        print('Event created: %s' % (event.get('htmlLink')))
+
+        # TODO: Create the event in the events table
+        # e = Event(u.id, None, **data)
+        # e.save()
+
+        # TODO: Send the confirmation email
+        return True
+    except Exception as e:
+        print_traceback(e)
+        return False
+
+
+def get_end_time(time_string, duration, tz_offset):
+    try:
+        dt = dateutil.parser.isoparse(time_string)
+        return (dt + datetime.timedelta(minutes=int(duration))).strftime('%Y-%m-%dT%H:%M:%S') + tz_offset
+    except Exception as e:
+        print_traceback(e)
+        return None
